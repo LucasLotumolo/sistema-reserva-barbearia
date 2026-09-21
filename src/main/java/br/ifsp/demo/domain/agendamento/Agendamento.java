@@ -4,6 +4,7 @@ import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
+import br.ifsp.demo.exception.HorarioIndisponivelException;
 import br.ifsp.demo.exception.RegraDeNegocioException;
 
 import java.math.BigDecimal;
@@ -46,10 +47,15 @@ public class Agendamento {
     }
 
     public void adicionarItem(ItemDeServico item, AgendaDoBarbeiro agenda) {
+        int duracaoComNovoItem = duracaoTotalEmMinutos() + item.getDuracaoEmMinutos();
+        Periodo novoPeriodo = new Periodo(periodo.inicio(), periodo.inicio().plusMinutes(duracaoComNovoItem));
+
+        if (!agenda.estaLivre(novoPeriodo, this.id)) {
+            throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
+
         itens.add(item);
-        int duracaoAtualizada = duracaoTotalEmMinutos();
-        LocalDateTime novoFim = periodo.inicio().plusMinutes(duracaoAtualizada);
-        this.periodo = new Periodo(periodo.inicio(), novoFim);
+        this.periodo = novoPeriodo;
     }
 
     public void removerItem(ItemId itemId) {
@@ -87,6 +93,10 @@ public class Agendamento {
 
     public List<ItemDeServico> getItens() {
         return itens;
+    }
+
+    public AgendamentoId getId() {
+        return id;
     }
 
     public Periodo getPeriodo() {

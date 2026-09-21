@@ -5,6 +5,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.HorarioIndisponivelException;
 import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -146,7 +147,7 @@ class AlterarServicosDoAgendamentoTest {
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
-    @DisplayName("3.4 - [ERROR] Adição de serviço com conflito de horário")
+    @DisplayName("3.4 - [ERROR] Adição de serviço com conflito de horário na agenda do barbeiro")
     void adicaoDeServicoComConflitoDeHorarioNaoEPermitida() {
         LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
         BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
@@ -195,7 +196,7 @@ class AlterarServicosDoAgendamentoTest {
         );
 
         assertThatThrownBy(() -> meuAgendamento.adicionarItem(servicoExtra, agendaComConflito))
-                .isInstanceOf(HorarioIndisponivelException.class);
+                .isInstanceOf(HorarioIndisponivelException.class).hasMessage("Horário indisponível para o barbeiro");
 
         assertThat(meuAgendamento.getItens()).hasSize(1);
         assertThat(meuAgendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(30));
