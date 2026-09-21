@@ -293,4 +293,56 @@ class AlterarServicosDoAgendamentoTest {
 
         assertThat(agendamento.getItens()).hasSize(5);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("3.7 - [ERROR] Inclusão que ultrapassa a duração máxima (250min)")
+    void inclusaoQueUltrapassaADuracaoMaximaNaoEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                120
+        );
+        ItemDeServico massagemCapilar = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Massagem capilar",
+                new Dinheiro(new BigDecimal("60.00")),
+                110
+        );
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(230)),
+                List.of(corte, massagemCapilar),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        ItemDeServico barba = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                20
+        );
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+      assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("duração máxima");
+
+        assertThat(agendamento.getItens()).hasSize(2);
+        assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(230);
+    }
 }
