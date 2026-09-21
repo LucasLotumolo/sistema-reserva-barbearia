@@ -201,4 +201,48 @@ class AlterarServicosDoAgendamentoTest {
         assertThat(meuAgendamento.getItens()).hasSize(1);
         assertThat(meuAgendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(30));
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("3.5 - [ERROR] Alteração de agendamento não ativo")
+    void alteracaoDeAgendamentoNaoAtivoNaoEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.CANCELADO,
+                0,
+                null
+        );
+
+        ItemDeServico barba = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                20
+        );
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(
+                new BarbeiroId(UUID.randomUUID()), inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Apenas agendamentos ativos podem ser alterados");
+
+        assertThat(agendamento.getItens()).hasSize(1);
+    }
 }
