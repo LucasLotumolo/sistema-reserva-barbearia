@@ -56,6 +56,11 @@ public class Agendamento {
         }
 
         int duracaoComNovoItem = duracaoTotalEmMinutos() + item.getDuracaoEmMinutos();
+
+        if (duracaoComNovoItem > 240) {
+            throw new RegraDeNegocioException("O agendamento ultrapassaria a duração máxima permitida");
+        }
+
         Periodo novoPeriodo = new Periodo(periodo.inicio(), periodo.inicio().plusMinutes(duracaoComNovoItem));
 
         if (!agenda.estaLivre(novoPeriodo, this.id)) {

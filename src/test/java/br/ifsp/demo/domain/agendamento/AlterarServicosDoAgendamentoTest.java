@@ -297,7 +297,7 @@ class AlterarServicosDoAgendamentoTest {
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
-    @DisplayName("3.7 - [ERROR] Inclusão que ultrapassa a duração máxima (250min)")
+    @DisplayName("3.7 - [ERROR] Inclusão que ultrapassa a duração máxima (240min)")
     void inclusaoQueUltrapassaADuracaoMaximaNaoEPermitida() {
         LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
         BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
@@ -340,7 +340,7 @@ class AlterarServicosDoAgendamentoTest {
 
       assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
                 .isInstanceOf(RegraDeNegocioException.class)
-                .hasMessageContaining("duração máxima");
+                .hasMessage("O agendamento ultrapassaria a duração máxima permitida");
 
         assertThat(agendamento.getItens()).hasSize(2);
         assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(230);
