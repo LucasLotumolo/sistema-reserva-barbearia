@@ -50,6 +50,20 @@ public class Agendamento {
         this.periodo = new Periodo(periodo.inicio(), novoFim);
     }
 
+    public void removerItem(ItemId itemId) {
+        ItemDeServico itemParaRemover = null;
+        for (ItemDeServico item : itens) {
+            if (item.getId().equals(itemId)) {
+                itemParaRemover = item;
+            }
+        }
+        itens.remove(itemParaRemover);
+
+        int duracaoAtualizada = duracaoTotalEmMinutos();
+        LocalDateTime novoFim = periodo.inicio().plusMinutes(duracaoAtualizada);
+        this.periodo = new Periodo(periodo.inicio(), novoFim);
+    }
+
     public int duracaoTotalEmMinutos() {
         int total = 0;
         for (ItemDeServico item : itens) {
