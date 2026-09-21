@@ -142,4 +142,62 @@ class AlterarServicosDoAgendamentoTest {
 
         assertThat(agendamento.getItens()).hasSize(1);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("3.4 - [ERROR] Adição de serviço com conflito de horário")
+    void adicaoDeServicoComConflitoDeHorarioNaoEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+        Agendamento meuAgendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Julio Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        LocalDateTime inicioOutro = inicio.plusMinutes(50);
+        Agendamento outroAgendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("João Souza", "11912345678"),
+                new Periodo(inicioOutro, inicioOutro.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        AgendaDoBarbeiro agendaComConflito = new AgendaDoBarbeiro(
+                barbeiroId, inicio.toLocalDate(), List.of(meuAgendamento, outroAgendamento));
+
+        ItemDeServico servicoExtra = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                30
+        );
+
+        assertThatThrownBy(() -> meuAgendamento.adicionarItem(servicoExtra, agendaComConflito))
+                .isInstanceOf(HorarioIndisponivelException.class);
+
+        assertThat(meuAgendamento.getItens()).hasSize(1);
+        assertThat(meuAgendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(30));
+    }
 }
