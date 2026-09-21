@@ -4,10 +4,12 @@ import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Agendamento {
@@ -51,6 +53,9 @@ public class Agendamento {
     }
 
     public void removerItem(ItemId itemId) {
+        if (itens.size() == 1) {
+            throw new RegraDeNegocioException("O agendamento deve conter ao menos um serviço");
+        }
         ItemDeServico itemParaRemover = null;
         for (ItemDeServico item : itens) {
             if (item.getId().equals(itemId)) {
@@ -78,6 +83,10 @@ public class Agendamento {
             total = total.somar(item.getPreco());
         }
         return total;
+    }
+
+    public List<ItemDeServico> getItens() {
+        return itens;
     }
 
     public Periodo getPeriodo() {
