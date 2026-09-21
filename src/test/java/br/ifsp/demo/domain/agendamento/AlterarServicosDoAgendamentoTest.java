@@ -63,4 +63,48 @@ class AlterarServicosDoAgendamentoTest {
         assertThat(agendamento.valorTotal().valor()).isEqualByComparingTo("65.00");
         assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(50));
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("3.2 - [OK] Remoção de serviço recalcula período e valor")
+    void remocaoDeServicoRecalculaPeriodoEValor() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+        ItemDeServico barba = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                20
+        );
+
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Marcos Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(50)),
+                List.of(corte, barba),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        agendamento.removerItem(barba.getId());
+
+        assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(30);
+        assertThat(agendamento.valorTotal().valor()).isEqualByComparingTo("40.00");
+        assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(30));
+    }
+
+
 }
