@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -244,5 +245,52 @@ class AlterarServicosDoAgendamentoTest {
                 .hasMessage("Apenas agendamentos ativos podem ser alterados");
 
         assertThat(agendamento.getItens()).hasSize(1);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("3.6 - [ERROR] Inclusão acima do número máximo de serviços permitidos (5)")
+    void inclusaoAcimaDoNumeroMaximoDeServicosNaoEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        List<ItemDeServico> cincoItens = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            cincoItens.add(new ItemDeServico(
+                    new ItemId(UUID.randomUUID()),
+                    new ServicoId(UUID.randomUUID()),
+                    "Serviço " + i,
+                    new Dinheiro(new BigDecimal("10.00")),
+                    10
+            ));
+        }
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(50)),
+                cincoItens,
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        ItemDeServico sextoItem = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Serviço extra",
+                new Dinheiro(new BigDecimal("10.00")),
+                10
+        );
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> agendamento.adicionarItem(sextoItem, agendaVazia))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("limite de serviços");
+
+        assertThat(agendamento.getItens()).hasSize(5);
     }
 }
