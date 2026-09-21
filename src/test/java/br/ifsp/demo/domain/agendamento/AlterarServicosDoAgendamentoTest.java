@@ -5,6 +5,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("US-03 — Alterar os serviços do agendamento")
 class AlterarServicosDoAgendamentoTest {
@@ -107,4 +109,37 @@ class AlterarServicosDoAgendamentoTest {
     }
 
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("3.3 - [ERROR] Remoção do último serviço do agendamento")
+    void remocaoDoUltimoServicoNaoEPermitida() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Joao Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        assertThatThrownBy(() -> agendamento.removerItem(corte.getId()))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O agendamento deve conter ao menos um serviço");
+
+        assertThat(agendamento.getItens()).hasSize(1);
+    }
 }
