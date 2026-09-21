@@ -47,6 +47,10 @@ public class Agendamento {
     }
 
     public void adicionarItem(ItemDeServico item, AgendaDoBarbeiro agenda) {
+        if (status != StatusAgendamento.AGENDADO) {
+            throw new RegraDeNegocioException("Apenas agendamentos ativos podem ser alterados");
+        }
+
         int duracaoComNovoItem = duracaoTotalEmMinutos() + item.getDuracaoEmMinutos();
         Periodo novoPeriodo = new Periodo(periodo.inicio(), periodo.inicio().plusMinutes(duracaoComNovoItem));
 
