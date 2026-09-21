@@ -1,5 +1,10 @@
 package br.ifsp.demo.domain.agendamento;
 
+import br.ifsp.demo.domain.comum.BarbeiroId;
+import br.ifsp.demo.domain.comum.ClienteId;
+import br.ifsp.demo.domain.comum.Dinheiro;
+import br.ifsp.demo.domain.comum.Periodo;
+import br.ifsp.demo.domain.servico.ServicoId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
