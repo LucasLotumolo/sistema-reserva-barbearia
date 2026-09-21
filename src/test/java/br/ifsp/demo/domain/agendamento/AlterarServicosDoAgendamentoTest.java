@@ -289,7 +289,7 @@ class AlterarServicosDoAgendamentoTest {
 
         assertThatThrownBy(() -> agendamento.adicionarItem(sextoItem, agendaVazia))
                 .isInstanceOf(RegraDeNegocioException.class)
-                .hasMessageContaining("limite de serviços");
+                .hasMessage("Limite de serviços por agendamento atingido");
 
         assertThat(agendamento.getItens()).hasSize(5);
     }

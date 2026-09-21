@@ -51,6 +51,10 @@ public class Agendamento {
             throw new RegraDeNegocioException("Apenas agendamentos ativos podem ser alterados");
         }
 
+        if (itens.size() == 5) {
+            throw new RegraDeNegocioException("Limite de serviços por agendamento atingido");
+        }
+
         int duracaoComNovoItem = duracaoTotalEmMinutos() + item.getDuracaoEmMinutos();
         Periodo novoPeriodo = new Periodo(periodo.inicio(), periodo.inicio().plusMinutes(duracaoComNovoItem));
 
