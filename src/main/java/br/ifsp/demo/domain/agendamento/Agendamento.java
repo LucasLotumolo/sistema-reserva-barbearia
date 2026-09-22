@@ -84,6 +84,14 @@ public class Agendamento {
         this.periodo = new Periodo(periodo.inicio(), novoFim);
     }
 
+    public void reagendarPara(LocalDateTime novoInicio, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        Periodo novoPeriodo = new Periodo(novoInicio, novoInicio.plusMinutes(duracaoTotalEmMinutos()));
+        validarDisponibilidadeDeHorario(novoPeriodo, agenda);
+
+        this.periodo = novoPeriodo;
+        this.quantidadeDeReagendamentos++;
+    }
+
     public int duracaoTotalEmMinutos() {
         int total = 0;
         for (ItemDeServico item : itens) {
@@ -131,6 +139,8 @@ public class Agendamento {
     public AgendamentoId getId() {
         return id;
     }
+
+    public int getQuantidadeDeReagendamentos() { return quantidadeDeReagendamentos; }
 
     public Periodo getPeriodo() {
         return periodo;
