@@ -5,6 +5,8 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.HorarioIndisponivelException;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("US-05 — Reagendar atendimento")
 class ReagendarAtendimentoTest {
@@ -63,5 +66,66 @@ class ReagendarAtendimentoTest {
         assertThat(agendamento.getItens()).isEqualTo(itensOriginais);
         assertThat(agendamento.valorTotal()).isEqualTo(valorOriginal);
         assertThat(agendamento.getQuantidadeDeReagendamentos()).isEqualTo(1);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("5.2 - [ERROR] Reagendamento para horário ocupado")
+    void reagendamentoParaHorarioOcupadoDeveSerRejeitado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 9, 21, 10, 0);
+        LocalDateTime inicioOriginal = agora.plusHours(5);
+        Periodo periodoOriginal = new Periodo(inicioOriginal, inicioOriginal.plusMinutes(30));
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Cauã", "16999999999"),
+                periodoOriginal,
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        LocalDateTime novoInicio = agora.plusDays(1).withHour(11).withMinute(0);
+
+        ItemDeServico outroCorte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+        Agendamento agendamentoConflitante = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Outro Cliente", "16988888888"),
+                new Periodo(novoInicio.minusMinutes(15), novoInicio.plusMinutes(15)),
+                List.of(outroCorte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        AgendaDoBarbeiro agendaComConflito = new AgendaDoBarbeiro(
+                barbeiroId, novoInicio.toLocalDate(), List.of(agendamentoConflitante));
+
+        assertThatThrownBy(() -> agendamento.reagendarPara(novoInicio, agendaComConflito, agora))
+                .isInstanceOf(HorarioIndisponivelException.class);
+
+        assertThat(agendamento.getPeriodo()).isEqualTo(periodoOriginal);
+        assertThat(agendamento.getQuantidadeDeReagendamentos()).isEqualTo(0);
     }
 }
