@@ -12,8 +12,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 public class Agendamento {
+    private static final int MAXIMO_DE_ITENS = 5;
+    private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
+
     private final AgendamentoId id;
     private final ClienteId clienteId;
     private final BarbeiroId barbeiroId;
@@ -47,34 +49,25 @@ public class Agendamento {
     }
 
     public void adicionarItem(ItemDeServico item, AgendaDoBarbeiro agenda) {
-        if (status != StatusAgendamento.AGENDADO) {
-            throw new RegraDeNegocioException("Apenas agendamentos ativos podem ser alterados");
-        }
-
-        if (itens.size() == 5) {
-            throw new RegraDeNegocioException("Limite de serviços por agendamento atingido");
-        }
+        validarAgendamentoAtivo();
+        validarLimiteDeItens();
 
         int duracaoComNovoItem = duracaoTotalEmMinutos() + item.getDuracaoEmMinutos();
-
-        if (duracaoComNovoItem > 240) {
-            throw new RegraDeNegocioException("O agendamento ultrapassaria a duração máxima permitida");
-        }
+        validarDuracaoMaxima(duracaoComNovoItem);
 
         Periodo novoPeriodo = new Periodo(periodo.inicio(), periodo.inicio().plusMinutes(duracaoComNovoItem));
-
-        if (!agenda.estaLivre(novoPeriodo, this.id)) {
-            throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
-        }
+        validarDisponibilidadeDeHorario(novoPeriodo, agenda);
 
         itens.add(item);
         this.periodo = novoPeriodo;
     }
 
+
     public void removerItem(ItemId itemId) {
         if (itens.size() == 1) {
             throw new RegraDeNegocioException("O agendamento deve conter ao menos um serviço");
         }
+
         ItemDeServico itemParaRemover = null;
         for (ItemDeServico item : itens) {
             if (item.getId().equals(itemId)) {
@@ -82,7 +75,10 @@ public class Agendamento {
             }
         }
         itens.remove(itemParaRemover);
+        recalcularPeriodo();
+    }
 
+    private void recalcularPeriodo() {
         int duracaoAtualizada = duracaoTotalEmMinutos();
         LocalDateTime novoFim = periodo.inicio().plusMinutes(duracaoAtualizada);
         this.periodo = new Periodo(periodo.inicio(), novoFim);
@@ -102,6 +98,30 @@ public class Agendamento {
             total = total.somar(item.getPreco());
         }
         return total;
+    }
+
+    private void validarAgendamentoAtivo() {
+        if (status != StatusAgendamento.AGENDADO) {
+            throw new RegraDeNegocioException("Apenas agendamentos ativos podem ser alterados");
+        }
+    }
+
+    private void validarLimiteDeItens() {
+        if (itens.size() == MAXIMO_DE_ITENS) {
+            throw new RegraDeNegocioException("Limite de serviços por agendamento atingido");
+        }
+    }
+
+    private void validarDuracaoMaxima(int duracaoEmMinutos) {
+        if (duracaoEmMinutos > DURACAO_MAXIMA_EM_MINUTOS) {
+            throw new RegraDeNegocioException("O agendamento ultrapassaria a duração máxima permitida");
+        }
+    }
+
+    private void validarDisponibilidadeDeHorario(Periodo novoPeriodo, AgendaDoBarbeiro agenda) {
+        if (!agenda.estaLivre(novoPeriodo, this.id)) {
+            throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
     }
 
     public List<ItemDeServico> getItens() {
