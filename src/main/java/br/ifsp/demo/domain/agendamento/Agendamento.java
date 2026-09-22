@@ -78,6 +78,10 @@ public class Agendamento {
         recalcularPeriodo();
     }
 
+    public void cancelar(LocalDateTime horarioDoCancelamento) {
+        this.status = StatusAgendamento.CANCELADO;
+    }
+
     private void recalcularPeriodo() {
         int duracaoAtualizada = duracaoTotalEmMinutos();
         LocalDateTime novoFim = periodo.inicio().plusMinutes(duracaoAtualizada);
@@ -135,4 +139,9 @@ public class Agendamento {
     public Periodo getPeriodo() {
         return periodo;
     }
+
+    public StatusAgendamento getStatus() {
+        return status;
+    }
+
 }
