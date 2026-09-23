@@ -190,7 +190,8 @@ class CancelarAgendamentoTest {
         );
 
         assertThatThrownBy(() -> agendamento.cancelar(horarioDoCancelamento))
-                .isInstanceOf(RegraDeNegocioException.class);
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Apenas agendamentos com status 'agendado' ou 'confirmado' podem ser cancelados");
 
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CANCELADO);
     }

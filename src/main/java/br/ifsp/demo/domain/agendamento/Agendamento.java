@@ -79,6 +79,10 @@ public class Agendamento {
     }
 
     public void cancelar(LocalDateTime horarioDoCancelamento) {
+        if (status != StatusAgendamento.AGENDADO && status != StatusAgendamento.CONFIRMADO) {
+            throw new RegraDeNegocioException("Apenas agendamentos com status 'agendado' ou 'confirmado' podem ser cancelados");
+        }
+
         if (!horarioDoCancelamento.isBefore(periodo.inicio())) {
             throw new RegraDeNegocioException("O atendimento já foi iniciado");
         }
