@@ -22,13 +22,13 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("US-05 — Reagendar atendimento")
+@DisplayName("Reagendar atendimento")
 class ReagendarAtendimentoTest {
 
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
-    @DisplayName("5.1 - [OK] Reagendamento realizado com sucesso")
+    @DisplayName("[OK] Reagendamento realizado com sucesso")
     void reagendamentoRealizadoComSucesso() {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
@@ -73,7 +73,7 @@ class ReagendarAtendimentoTest {
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
-    @DisplayName("5.2 - [ERROR] Reagendamento para horário ocupado")
+    @DisplayName("[ERROR] Reagendamento para horário ocupado")
     void reagendamentoParaHorarioOcupadoDeveSerRejeitado() {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
@@ -134,7 +134,7 @@ class ReagendarAtendimentoTest {
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
-    @DisplayName("5.3 - [ERROR] Reagendamento sem antecedência mínima")
+    @DisplayName("[ERROR] Reagendamento sem antecedência mínima")
     void reagendamentoSemAntecedenciaMinimaDeveSerRejeitado() {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
