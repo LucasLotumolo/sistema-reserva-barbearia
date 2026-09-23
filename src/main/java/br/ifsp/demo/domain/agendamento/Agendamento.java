@@ -79,6 +79,10 @@ public class Agendamento {
     }
 
     public void cancelar(LocalDateTime horarioDoCancelamento) {
+        if (!horarioDoCancelamento.isBefore(periodo.inicio())) {
+            throw new RegraDeNegocioException("O atendimento já foi iniciado");
+        }
+
         this.status = StatusAgendamento.CANCELADO;
     }
 

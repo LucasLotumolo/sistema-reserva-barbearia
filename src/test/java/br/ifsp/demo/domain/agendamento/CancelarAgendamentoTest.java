@@ -156,7 +156,7 @@ class CancelarAgendamentoTest {
 
         assertThatThrownBy(() -> agendamento.cancelar(horarioDoCancelamento))
                 .isInstanceOf(RegraDeNegocioException.class)
-                .hasMessageContaining("já foi iniciado");
+                .hasMessage("O atendimento já foi iniciado");
 
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
     }
