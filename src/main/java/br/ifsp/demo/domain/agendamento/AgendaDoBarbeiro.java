@@ -17,14 +17,17 @@ public class AgendaDoBarbeiro {
         this.agendamentosDoDia = List.copyOf(agendamentosDoDia);
     }
     public boolean estaLivre(Periodo periodo, AgendamentoId agendamentoAtual) {
+        boolean livre = true;
         for (Agendamento agendamento : agendamentosDoDia) {
-            if (agendamento.getId().equals(agendamentoAtual)) {
-                continue;
-            }
-            if (agendamento.getPeriodo().sobrepoe(periodo)) {
-                return false;
+            boolean ehOMesmoAgendamento = agendamento.getId().equals(agendamentoAtual);
+            boolean estaCancelado = agendamento.getStatus() == StatusAgendamento.CANCELADO;
+
+            if (!ehOMesmoAgendamento && !estaCancelado) {
+                if (agendamento.getPeriodo().sobrepoe(periodo)) {
+                    livre = false;
+                }
             }
         }
-        return true;
+        return livre;
     }
 }
