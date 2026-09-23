@@ -171,4 +171,43 @@ class ReagendarAtendimentoTest {
         assertThat(agendamento.getPeriodo()).isEqualTo(periodoOriginal);
         assertThat(agendamento.getQuantidadeDeReagendamentos()).isEqualTo(0);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Reagendamento no limite da antecedência mínima")
+    void reagendamentoNoLimiteDaAntecedenciaMinimaDeveSerAceito() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 9, 21, 10, 0);
+        LocalDateTime inicioOriginal = agora.plusMinutes(120);
+        Periodo periodoOriginal = new Periodo(inicioOriginal, inicioOriginal.plusMinutes(30));
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Cauã", "16999999999"),
+                periodoOriginal,
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        LocalDateTime novoInicio = agora.plusDays(1).withHour(11).withMinute(0);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, novoInicio.toLocalDate(), List.of());
+
+        agendamento.reagendarPara(novoInicio, agenda, agora);
+
+        assertThat(agendamento.getPeriodo().inicio()).isEqualTo(novoInicio);
+        assertThat(agendamento.getQuantidadeDeReagendamentos()).isEqualTo(1);
+    }
 }
