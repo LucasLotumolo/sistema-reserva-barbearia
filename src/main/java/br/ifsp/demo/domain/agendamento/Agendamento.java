@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.time.Duration;
+
 public class Agendamento {
     private static final int MAXIMO_DE_ITENS = 5;
     private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
+    private static final int ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS = 120;
 
     private final AgendamentoId id;
     private final ClienteId clienteId;
@@ -85,6 +88,7 @@ public class Agendamento {
     }
 
     public void reagendarPara(LocalDateTime novoInicio, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        validarAntecedenciaMinima(agora);
         Periodo novoPeriodo = new Periodo(novoInicio, novoInicio.plusMinutes(duracaoTotalEmMinutos()));
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
 
@@ -129,6 +133,13 @@ public class Agendamento {
     private void validarDisponibilidadeDeHorario(Periodo novoPeriodo, AgendaDoBarbeiro agenda) {
         if (!agenda.estaLivre(novoPeriodo, this.id)) {
             throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
+    }
+
+    private void validarAntecedenciaMinima(LocalDateTime agora) {
+        long minutosAteInicio = Duration.between(agora, periodo.inicio()).toMinutes();
+        if (minutosAteInicio < ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS) {
+            throw new RegraDeNegocioException("Reagendamento exige no mínimo " + ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS + " minutos de antecedência");
         }
     }
 
