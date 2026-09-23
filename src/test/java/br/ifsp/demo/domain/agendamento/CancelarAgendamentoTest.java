@@ -85,4 +85,42 @@ class CancelarAgendamentoTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CANCELADO);
     }
 
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("4.3 - [OK] Horário de agendamento cancelado fica disponível")
+    void horarioDeAgendamentoCanceladoFicaDisponivel() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        Agendamento agendamentoCancelado = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Flower Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.CANCELADO,
+                0,
+                null
+        );
+
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(
+                barbeiroId, inicio.toLocalDate(), List.of(agendamentoCancelado));
+
+        Periodo periodoDesejadoPorOutroCliente = new Periodo(inicio, inicio.plusMinutes(30));
+
+        boolean disponivel = agenda.estaLivre(periodoDesejadoPorOutroCliente, null);
+
+        assertThat(disponivel).isTrue();
+    }
 }
