@@ -286,7 +286,7 @@ class ReagendarAtendimentoTest {
 
         assertThatThrownBy(() -> agendamento.reagendarPara(novoInicio, agenda, agora))
                 .isInstanceOf(RegraDeNegocioException.class)
-                .hasMessageContaining("limite");
+                .hasMessage("Limite de reagendamentos atingido");
 
         assertThat(agendamento.getPeriodo()).isEqualTo(periodoOriginal);
         assertThat(agendamento.getQuantidadeDeReagendamentos()).isEqualTo(3);

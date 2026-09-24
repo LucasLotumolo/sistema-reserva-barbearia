@@ -18,6 +18,7 @@ public class Agendamento {
     private static final int MAXIMO_DE_ITENS = 5;
     private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
     private static final int ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS = 120;
+    private static final int MAXIMO_DE_REAGENDAMENTOS = 3;
 
     private final AgendamentoId id;
     private final ClienteId clienteId;
@@ -88,6 +89,7 @@ public class Agendamento {
     }
 
     public void reagendarPara(LocalDateTime novoInicio, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        validarLimiteDeReagendamentos();
         validarAntecedenciaMinima(agora);
         Periodo novoPeriodo = new Periodo(novoInicio, novoInicio.plusMinutes(duracaoTotalEmMinutos()));
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
@@ -133,6 +135,12 @@ public class Agendamento {
     private void validarDisponibilidadeDeHorario(Periodo novoPeriodo, AgendaDoBarbeiro agenda) {
         if (!agenda.estaLivre(novoPeriodo, this.id)) {
             throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
+    }
+
+    private void validarLimiteDeReagendamentos() {
+        if (quantidadeDeReagendamentos >= MAXIMO_DE_REAGENDAMENTOS) {
+            throw new RegraDeNegocioException("Limite de reagendamentos atingido");
         }
     }
 
