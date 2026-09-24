@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import br.ifsp.demo.exception.RegraDeNegocioException;
 
 @DisplayName("US-06 — Confirmar presença")
 class ConfirmarPresencaTest {
@@ -53,4 +56,41 @@ class ConfirmarPresencaTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CONFIRMADO);
         assertThat(agendamento.getPeriodo()).isEqualTo(periodo);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Confirmação antes da abertura da janela")
+    void confirmacaoAntesDaAberturaDaJanelaDeveSerRejeitada() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 9, 21, 10, 0);
+        LocalDateTime inicio = agora.plusHours(25);
+        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(30));
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Cauã", "16999999999"),
+                periodo,
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        assertThatThrownBy(() -> agendamento.confirmarPresenca(agora))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("A confirmacao so e liberada 24 horas antes do atendimento");
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+    }
+
 }
