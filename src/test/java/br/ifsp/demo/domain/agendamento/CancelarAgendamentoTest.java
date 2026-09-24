@@ -195,4 +195,39 @@ class CancelarAgendamentoTest {
 
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CANCELADO);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("4.6 - [ERROR] Cancelamento de agendamento expirado")
+    void cancelamentoDeAgendamentoExpiradoNaoEPermitido() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        LocalDateTime horarioDoCancelamento = inicio.minusHours(2);
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Marina Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.EXPIRADO,
+                0,
+                null
+        );
+
+        assertThatThrownBy(() -> agendamento.cancelar(horarioDoCancelamento))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("Apenas agendamentos com status 'agendado' ou 'confirmado' podem ser cancelados");
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.EXPIRADO);
+    }
 }
