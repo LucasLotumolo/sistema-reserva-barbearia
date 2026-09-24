@@ -64,6 +64,8 @@ public class Agendamento {
 
 
     public void removerItem(ItemId itemId) {
+        validarAgendamentoAtivo();
+
         if (itens.size() == 1) {
             throw new RegraDeNegocioException("O agendamento deve conter ao menos um serviço");
         }

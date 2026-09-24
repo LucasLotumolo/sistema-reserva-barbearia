@@ -338,7 +338,7 @@ class AlterarServicosDoAgendamentoTest {
         );
         AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
 
-      assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
+        assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O agendamento ultrapassaria a duração máxima permitida");
 
@@ -377,7 +377,45 @@ class AlterarServicosDoAgendamentoTest {
                 null);
 
         assertThatThrownBy(() -> agendamento.removerItem(barba.getId()))
-                .isInstanceOf(RegraDeNegocioException.class);
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Apenas agendamentos ativos podem ser alterados");
+
+        assertThat(agendamento.getItens()).hasSize(2);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Remoção de serviço em agendamento expirado não é permitida")
+    void remocaoDeServicoEmAgendamentoExpiradoNaoEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30);
+        ItemDeServico barba = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                20);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Luiz Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(50)),
+                List.of(corte, barba),
+                StatusAgendamento.EXPIRADO, 0,
+                null);
+
+        assertThatThrownBy(() -> agendamento.removerItem(barba.getId()))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Apenas agendamentos ativos podem ser alterados");
 
         assertThat(agendamento.getItens()).hasSize(2);
     }
