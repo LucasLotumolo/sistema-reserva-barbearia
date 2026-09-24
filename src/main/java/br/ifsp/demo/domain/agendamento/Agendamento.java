@@ -92,14 +92,18 @@ public class Agendamento {
     }
 
     public void reagendarPara(LocalDateTime novoInicio, AgendaDoBarbeiro agenda, LocalDateTime agora) {
-        validarLimiteDeReagendamentos();
-        validarAntecedenciaMinima(agora);
         Periodo novoPeriodo = new Periodo(novoInicio, novoInicio.plusMinutes(duracaoTotalEmMinutos()));
-        validarExpediente(novoPeriodo);
-        validarDisponibilidadeDeHorario(novoPeriodo, agenda);
+        validarReagendamento(novoPeriodo, agenda, agora);
 
         this.periodo = novoPeriodo;
         this.quantidadeDeReagendamentos++;
+    }
+
+    private void validarReagendamento(Periodo novoPeriodo, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        validarLimiteDeReagendamentos();
+        validarAntecedenciaMinima(agora);
+        validarExpediente(novoPeriodo);
+        validarDisponibilidadeDeHorario(novoPeriodo, agenda);
     }
 
     public int duracaoTotalEmMinutos() {
