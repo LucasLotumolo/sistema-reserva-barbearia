@@ -106,6 +106,10 @@ public class Agendamento {
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
     }
 
+    public void confirmarPresenca(LocalDateTime agora) {
+        this.status = StatusAgendamento.CONFIRMADO;
+    }
+
     public int duracaoTotalEmMinutos() {
         int total = 0;
         for (ItemDeServico item : itens) {
@@ -180,4 +184,6 @@ public class Agendamento {
     public Periodo getPeriodo() {
         return periodo;
     }
+
+    public StatusAgendamento getStatus() { return status; }
 }
