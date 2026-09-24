@@ -345,4 +345,40 @@ class AlterarServicosDoAgendamentoTest {
         assertThat(agendamento.getItens()).hasSize(2);
         assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(230);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Remoção de serviço em agendamento cancelado não é permitida")
+    void remocaoDeServicoEmAgendamentoCanceladoNaoEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30);
+        ItemDeServico barba = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                20);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Luiz Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(50)),
+                List.of(corte, barba),
+                StatusAgendamento.CANCELADO, 0,
+                null);
+
+        assertThatThrownBy(() -> agendamento.removerItem(barba.getId()))
+                .isInstanceOf(RegraDeNegocioException.class);
+
+        assertThat(agendamento.getItens()).hasSize(2);
+    }
 }
