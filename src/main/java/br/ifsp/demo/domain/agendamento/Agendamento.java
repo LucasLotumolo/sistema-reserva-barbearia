@@ -12,9 +12,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.time.Duration;
+import java.time.LocalTime;
+
 public class Agendamento {
     private static final int MAXIMO_DE_ITENS = 5;
     private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
+    private static final int ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS = 120;
+    private static final int MAXIMO_DE_REAGENDAMENTOS = 3;
+    private static final LocalTime HORARIO_ABERTURA = LocalTime.of(9, 0);
+    private static final LocalTime HORARIO_FECHAMENTO = LocalTime.of(19, 0);
 
     private final AgendamentoId id;
     private final ClienteId clienteId;
@@ -98,6 +105,25 @@ public class Agendamento {
         this.periodo = new Periodo(periodo.inicio(), novoFim);
     }
 
+    public void reagendarPara(LocalDateTime novoInicio, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        Periodo novoPeriodo = new Periodo(novoInicio, novoInicio.plusMinutes(duracaoTotalEmMinutos()));
+        validarReagendamento(novoPeriodo, agenda, agora);
+
+        this.periodo = novoPeriodo;
+        this.quantidadeDeReagendamentos++;
+    }
+
+    private void validarReagendamento(Periodo novoPeriodo, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        validarLimiteDeReagendamentos();
+        validarAntecedenciaMinima(agora);
+        validarExpediente(novoPeriodo);
+        validarDisponibilidadeDeHorario(novoPeriodo, agenda);
+    }
+
+    public void confirmarPresenca(LocalDateTime agora) {
+        this.status = StatusAgendamento.CONFIRMADO;
+    }
+
     public int duracaoTotalEmMinutos() {
         int total = 0;
         for (ItemDeServico item : itens) {
@@ -132,9 +158,30 @@ public class Agendamento {
         }
     }
 
+    private void validarExpediente(Periodo periodo) {
+        LocalTime inicio = periodo.inicio().toLocalTime();
+        LocalTime fim = periodo.fim().toLocalTime();
+        if (inicio.isBefore(HORARIO_ABERTURA) || fim.isAfter(HORARIO_FECHAMENTO)) {
+            throw new RegraDeNegocioException("O periodo deve estar dentro do horario de funcionamento");
+        }
+    }
+
     private void validarDisponibilidadeDeHorario(Periodo novoPeriodo, AgendaDoBarbeiro agenda) {
         if (!agenda.estaLivre(novoPeriodo, this.id)) {
             throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
+    }
+
+    private void validarLimiteDeReagendamentos() {
+        if (quantidadeDeReagendamentos >= MAXIMO_DE_REAGENDAMENTOS) {
+            throw new RegraDeNegocioException("Limite de reagendamentos atingido");
+        }
+    }
+
+    private void validarAntecedenciaMinima(LocalDateTime agora) {
+        long minutosAteInicio = Duration.between(agora, periodo.inicio()).toMinutes();
+        if (minutosAteInicio < ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS) {
+            throw new RegraDeNegocioException("Reagendamento exige no mínimo " + ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS + " minutos de antecedência");
         }
     }
 
@@ -146,12 +193,12 @@ public class Agendamento {
         return id;
     }
 
+    public int getQuantidadeDeReagendamentos() { return quantidadeDeReagendamentos; }
+
     public Periodo getPeriodo() {
         return periodo;
     }
 
-    public StatusAgendamento getStatus() {
-        return status;
-    }
+    public StatusAgendamento getStatus() { return status; }
 
 }
