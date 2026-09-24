@@ -22,6 +22,7 @@ public class Agendamento {
     private static final int MAXIMO_DE_REAGENDAMENTOS = 3;
     private static final LocalTime HORARIO_ABERTURA = LocalTime.of(9, 0);
     private static final LocalTime HORARIO_FECHAMENTO = LocalTime.of(19, 0);
+    private static final int JANELA_CONFIRMACAO_ABERTURA_EM_HORAS = 24;
 
     private final AgendamentoId id;
     private final ClienteId clienteId;
@@ -121,7 +122,15 @@ public class Agendamento {
     }
 
     public void confirmarPresenca(LocalDateTime agora) {
+        validarJanelaDeConfirmacaoAberta(agora);
         this.status = StatusAgendamento.CONFIRMADO;
+    }
+
+    private void validarJanelaDeConfirmacaoAberta(LocalDateTime agora) {
+        Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
+        if (tempoAteInicio.compareTo(Duration.ofHours(JANELA_CONFIRMACAO_ABERTURA_EM_HORAS)) > 0) {
+            throw new RegraDeNegocioException("A confirmacao so e liberada 24 horas antes do atendimento");
+        }
     }
 
     public int duracaoTotalEmMinutos() {
