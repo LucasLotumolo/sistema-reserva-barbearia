@@ -13,12 +13,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.time.Duration;
+import java.time.LocalTime;
 
 public class Agendamento {
     private static final int MAXIMO_DE_ITENS = 5;
     private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
     private static final int ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS = 120;
     private static final int MAXIMO_DE_REAGENDAMENTOS = 3;
+    private static final LocalTime HORARIO_ABERTURA = LocalTime.of(9, 0);
+    private static final LocalTime HORARIO_FECHAMENTO = LocalTime.of(19, 0);
 
     private final AgendamentoId id;
     private final ClienteId clienteId;
@@ -92,6 +95,7 @@ public class Agendamento {
         validarLimiteDeReagendamentos();
         validarAntecedenciaMinima(agora);
         Periodo novoPeriodo = new Periodo(novoInicio, novoInicio.plusMinutes(duracaoTotalEmMinutos()));
+        validarExpediente(novoPeriodo);
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
 
         this.periodo = novoPeriodo;
@@ -129,6 +133,14 @@ public class Agendamento {
     private void validarDuracaoMaxima(int duracaoEmMinutos) {
         if (duracaoEmMinutos > DURACAO_MAXIMA_EM_MINUTOS) {
             throw new RegraDeNegocioException("O agendamento ultrapassaria a duração máxima permitida");
+        }
+    }
+
+    private void validarExpediente(Periodo periodo) {
+        LocalTime inicio = periodo.inicio().toLocalTime();
+        LocalTime fim = periodo.fim().toLocalTime();
+        if (inicio.isBefore(HORARIO_ABERTURA) || fim.isAfter(HORARIO_FECHAMENTO)) {
+            throw new RegraDeNegocioException("O periodo deve estar dentro do horario de funcionamento");
         }
     }
 
