@@ -123,20 +123,19 @@ public class Agendamento {
     }
 
     public void confirmarPresenca(LocalDateTime agora) {
-        validarJanelaDeConfirmacaoAberta(agora);
-        validarJanelaDeConfirmacaoNaoEncerrada(agora);
+        Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
+        validarJanelaDeConfirmacaoAberta(tempoAteInicio);
+        validarJanelaDeConfirmacaoNaoEncerrada(tempoAteInicio);
         this.status = StatusAgendamento.CONFIRMADO;
     }
 
-    private void validarJanelaDeConfirmacaoAberta(LocalDateTime agora) {
-        Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
+    private void validarJanelaDeConfirmacaoAberta(Duration tempoAteInicio) {
         if (tempoAteInicio.compareTo(Duration.ofHours(JANELA_CONFIRMACAO_ABERTURA_EM_HORAS)) > 0) {
             throw new RegraDeNegocioException("A confirmacao so e liberada 24 horas antes do atendimento");
         }
     }
 
-    private void validarJanelaDeConfirmacaoNaoEncerrada(LocalDateTime agora) {
-        Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
+    private void validarJanelaDeConfirmacaoNaoEncerrada(Duration tempoAteInicio) {
         if (tempoAteInicio.compareTo(Duration.ofMinutes(JANELA_CONFIRMACAO_ENCERRAMENTO_EM_MINUTOS)) < 0) {
             throw new RegraDeNegocioException("O prazo de confirmacao foi encerrado");
         }
