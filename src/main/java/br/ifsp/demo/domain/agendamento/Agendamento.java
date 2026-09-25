@@ -123,10 +123,17 @@ public class Agendamento {
     }
 
     public void confirmarPresenca(LocalDateTime agora) {
+        validarNaoConfirmado();
         Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
         validarJanelaDeConfirmacaoAberta(tempoAteInicio);
         validarJanelaDeConfirmacaoNaoEncerrada(tempoAteInicio);
         this.status = StatusAgendamento.CONFIRMADO;
+    }
+
+    private void validarNaoConfirmado() {
+        if (status == StatusAgendamento.CONFIRMADO) {
+            throw new RegraDeNegocioException("O agendamento ja esta confirmado");
+        }
     }
 
     private void validarJanelaDeConfirmacaoAberta(Duration tempoAteInicio) {
