@@ -122,6 +122,20 @@ public class Agendamento {
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
     }
 
+    public boolean liberarSeNaoConfirmado(LocalDateTime agora) {
+        if (status != StatusAgendamento.AGENDADO) {
+            return false;
+        }
+
+        Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
+        if (tempoAteInicio.compareTo(Duration.ofMinutes(JANELA_CONFIRMACAO_ENCERRAMENTO_EM_MINUTOS)) < 0) {
+            this.status = StatusAgendamento.EXPIRADO;
+            return true;
+        }
+
+        return false;
+    }
+
     public void confirmarPresenca(LocalDateTime agora) {
         validarNaoConfirmado();
         Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
