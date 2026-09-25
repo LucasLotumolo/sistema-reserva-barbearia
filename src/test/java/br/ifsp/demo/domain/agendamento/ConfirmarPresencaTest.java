@@ -232,4 +232,40 @@ class ConfirmarPresencaTest {
 
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CONFIRMADO);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Liberação do horário não confirmado")
+    void liberacaoDeHorarioNaoConfirmadoDeveExpirarAgendamento() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 9, 21, 10, 0);
+        LocalDateTime inicio = agora.plusMinutes(20);
+        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(30));
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Cauã", "16999999999"),
+                periodo,
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+
+        boolean liberado = agendamento.liberarSeNaoConfirmado(agora);
+
+        assertThat(liberado).isTrue();
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.EXPIRADO);
+    }
+
 }
