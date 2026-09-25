@@ -197,4 +197,5 @@ class ConfirmarPresencaTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
     }
 
+
 }
