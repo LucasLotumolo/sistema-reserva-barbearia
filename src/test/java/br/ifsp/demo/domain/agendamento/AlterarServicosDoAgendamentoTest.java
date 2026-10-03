@@ -451,7 +451,7 @@ class AlterarServicosDoAgendamentoTest {
 
         assertThat(meuAgendamento.duracaoTotalEmMinutos()).isEqualTo(50);
     }
-    
+
     @Test
     @Tag("UnitTest")
     @Tag("Functional")
@@ -481,4 +481,82 @@ class AlterarServicosDoAgendamentoTest {
         meuAgendamento.adicionarItem(barba, agenda);
         assertThat(meuAgendamento.getItens()).hasSize(2);
     }
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Invasão de 1 minuto no próximo agendamento é rejeitada")
+    void invasaoDeUmMinutoNoProximoAgendamentoERejeitada() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        Agendamento meuAgendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+
+        LocalDateTime inicioOutro = inicio.plusMinutes(49);
+        Agendamento outroAgendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("João Souza", "11912345678"), new Periodo(inicioOutro, inicioOutro.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(),
+                List.of(meuAgendamento, outroAgendamento));
+
+        assertThatThrownBy(() -> meuAgendamento.adicionarItem(barba, agenda))
+                .isInstanceOf(HorarioIndisponivelException.class);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Duração resultante exatamente no limite (240 min) é permitida")
+    void duracaoResultanteExatamenteNoLimiteEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("80.00")), 220);
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(220)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        agendamento.adicionarItem(barba, agendaVazia);
+
+        assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(240);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Duração resultante de 241 minutos é rejeitada")
+    void duracaoResultanteDe241MinutosERejeitada() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("80.00")), 220);
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(220)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        ItemDeServico sobrancelha = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Sobrancelha", new Dinheiro(new BigDecimal("15.00")), 21);
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> agendamento.adicionarItem(sobrancelha, agendaVazia))
+                .isInstanceOf(RegraDeNegocioException.class);
+    }
+
 }
