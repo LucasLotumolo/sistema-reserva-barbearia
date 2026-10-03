@@ -51,4 +51,44 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getPeriodo().inicio()).isEqualTo(inicio);
         assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(30));
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.2 - [OK] Agendamento com múltiplos serviços")
+    void agendamentoComMultiplosServicosSomaDuracaoEValor() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+        ItemDeServico barba = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                20
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 14, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte, barba),
+                agendaLivre,
+                agora
+        );
+
+        assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(50);
+        assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(50));
+        assertThat(agendamento.valorTotal()).isEqualTo(new Dinheiro(new BigDecimal("65.00")));
+    }
 }
