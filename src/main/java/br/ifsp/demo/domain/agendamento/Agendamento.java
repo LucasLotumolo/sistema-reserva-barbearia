@@ -119,6 +119,7 @@ public class Agendamento {
         validarAgendamentoAtivo();
         validarLimiteDeReagendamentos();
         validarAntecedenciaMinima(agora);
+        validarNovoHorarioFuturo(novoPeriodo, agora);
         validarExpediente(novoPeriodo);
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
     }
@@ -221,6 +222,12 @@ public class Agendamento {
         long minutosAteInicio = Duration.between(agora, periodo.inicio()).toMinutes();
         if (minutosAteInicio < ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS) {
             throw new RegraDeNegocioException("Reagendamento exige no mínimo " + ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS + " minutos de antecedência");
+        }
+    }
+
+    private void validarNovoHorarioFuturo(Periodo novoPeriodo, LocalDateTime agora) {
+        if (!novoPeriodo.inicio().isAfter(agora)) {
+            throw new RegraDeNegocioException("Nao e permitido agendar em horario passado");
         }
     }
 
