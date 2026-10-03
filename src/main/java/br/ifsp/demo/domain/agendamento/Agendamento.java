@@ -55,8 +55,13 @@ public class Agendamento {
                                     LocalDateTime inicio, List<ItemDeServico> itens,
                                     AgendaDoBarbeiro agenda, LocalDateTime agora) {
         Periodo periodo = new Periodo(inicio, inicio.plusMinutes(somarDuracoes(itens)));
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
 
-        return new Agendamento(new AgendamentoId(UUID.randomUUID()), clienteId, barbeiroId, contato,
+        if (!agenda.estaLivre(periodo, id)) {
+            throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
+
+        return new Agendamento(id, clienteId, barbeiroId, contato,
                 periodo, itens, StatusAgendamento.AGENDADO, 0, null);
     }
 
@@ -251,5 +256,4 @@ public class Agendamento {
     public Periodo getPeriodo() {
         return periodo;
     }
-
 }
