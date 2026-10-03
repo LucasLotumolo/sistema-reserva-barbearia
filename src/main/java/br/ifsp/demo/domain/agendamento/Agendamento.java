@@ -6,6 +6,7 @@ import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.exception.HorarioIndisponivelException;
 import br.ifsp.demo.exception.RegraDeNegocioException;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class Agendamento {
     private final Contato contato;
     private Periodo periodo;
     private final List<ItemDeServico> itens;
+    @Getter
     private StatusAgendamento status;
     private int quantidadeDeReagendamentos;
     private Avaliacao avaliacao;
@@ -52,11 +54,7 @@ public class Agendamento {
     public static Agendamento criar(ClienteId clienteId, BarbeiroId barbeiroId, Contato contato,
                                     LocalDateTime inicio, List<ItemDeServico> itens,
                                     AgendaDoBarbeiro agenda, LocalDateTime agora) {
-        int duracaoTotal = 0;
-        for (ItemDeServico item : itens) {
-            duracaoTotal = duracaoTotal + item.getDuracaoEmMinutos();
-        }
-        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(duracaoTotal));
+        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(somarDuracoes(itens)));
 
         return new Agendamento(new AgendamentoId(UUID.randomUUID()), clienteId, barbeiroId, contato,
                 periodo, itens, StatusAgendamento.AGENDADO, 0, null);
@@ -176,6 +174,10 @@ public class Agendamento {
     }
 
     public int duracaoTotalEmMinutos() {
+        return somarDuracoes(itens);
+    }
+
+    private static int somarDuracoes(List<ItemDeServico> itens) {
         int total = 0;
         for (ItemDeServico item : itens) {
             total = total + item.getDuracaoEmMinutos();
@@ -249,7 +251,5 @@ public class Agendamento {
     public Periodo getPeriodo() {
         return periodo;
     }
-
-    public StatusAgendamento getStatus() { return status; }
 
 }
