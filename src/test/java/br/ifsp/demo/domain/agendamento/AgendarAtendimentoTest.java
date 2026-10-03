@@ -3,7 +3,9 @@ package br.ifsp.demo.domain.agendamento;
 import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
+import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.HorarioIndisponivelException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("US-01 — Agendar atendimento")
 class AgendarAtendimentoTest {
@@ -90,5 +93,49 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(50);
         assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(50));
         assertThat(agendamento.valorTotal()).isEqualTo(new Dinheiro(new BigDecimal("65.00")));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.3 - [ERROR] Conflito de horário com outro agendamento")
+    void conflitoDeHorarioComOutroAgendamentoDeveSerRejeitado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicioExistente = LocalDateTime.of(2026, 10, 2, 14, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamentoExistente = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Cauã", "16988888888"),
+                new Periodo(inicioExistente, inicioExistente.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+        AgendaDoBarbeiro agendaComConflito = new AgendaDoBarbeiro(
+                barbeiroId, inicioExistente.toLocalDate(), List.of(agendamentoExistente));
+
+        LocalDateTime inicioSobreposto = inicioExistente.plusMinutes(15);
+
+        assertThatThrownBy(() -> Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicioSobreposto,
+                List.of(corte),
+                agendaComConflito,
+                agora
+        )).isInstanceOf(HorarioIndisponivelException.class);
     }
 }
