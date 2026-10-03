@@ -138,4 +138,51 @@ class AgendarAtendimentoTest {
                 agora
         )).isInstanceOf(HorarioIndisponivelException.class);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.4 - [OK] Encaixe imediatamente após outro atendimento")
+    void encaixeImediatamenteAposOutroAtendimentoDeveSerCriado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicioExistente = LocalDateTime.of(2026, 10, 2, 14, 0);
+        LocalDateTime fimExistente = inicioExistente.plusMinutes(30);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamentoExistente = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Cauã", "16988888888"),
+                new Periodo(inicioExistente, fimExistente),
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(
+                barbeiroId, inicioExistente.toLocalDate(), List.of(agendamentoExistente));
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                fimExistente,
+                List.of(corte),
+                agenda,
+                agora
+        );
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+        assertThat(agendamento.getPeriodo().inicio()).isEqualTo(fimExistente);
+        assertThat(agendamento.getPeriodo().fim()).isEqualTo(fimExistente.plusMinutes(30));
+    }
 }
