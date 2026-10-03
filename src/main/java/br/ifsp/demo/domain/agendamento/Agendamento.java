@@ -116,6 +116,7 @@ public class Agendamento {
     }
 
     private void validarReagendamento(Periodo novoPeriodo, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        validarAgendamentoAtivo();
         validarLimiteDeReagendamentos();
         validarAntecedenciaMinima(agora);
         validarExpediente(novoPeriodo);
@@ -179,7 +180,7 @@ public class Agendamento {
     }
 
     private void validarAgendamentoAtivo() {
-        if (status != StatusAgendamento.AGENDADO) {
+        if (status != StatusAgendamento.AGENDADO && status != StatusAgendamento.CONFIRMADO) {
             throw new RegraDeNegocioException("Apenas agendamentos ativos podem ser alterados");
         }
     }
