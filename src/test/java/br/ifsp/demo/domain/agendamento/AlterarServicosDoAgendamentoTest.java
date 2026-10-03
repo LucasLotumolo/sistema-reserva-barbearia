@@ -559,4 +559,54 @@ class AlterarServicosDoAgendamentoTest {
                 .isInstanceOf(RegraDeNegocioException.class);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Adição do 5º item é permitida (limite máximo)")
+    void adicaoDoQuintoItemEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        List<ItemDeServico> quatroItens = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            quatroItens.add(new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                    "Serviço " + i, new Dinheiro(new BigDecimal("10.00")), 10));
+        }
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(40)),
+                quatroItens, StatusAgendamento.AGENDADO, 0, null);
+
+        ItemDeServico quintoItem = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Serviço extra", new Dinheiro(new BigDecimal("10.00")), 10);
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        agendamento.adicionarItem(quintoItem, agendaVazia);
+
+        assertThat(agendamento.getItens()).hasSize(5);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Adição de serviço em agendamento expirado é rejeitada")
+    void adicaoDeServicoEmAgendamentoExpiradoERejeitada() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.EXPIRADO, 0, null);
+
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+        AgendaDoBarbeiro agendaVazia = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
+                .isInstanceOf(RegraDeNegocioException.class);
+    }
 }
