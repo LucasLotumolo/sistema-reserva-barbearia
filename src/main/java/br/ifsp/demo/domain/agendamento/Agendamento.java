@@ -52,6 +52,10 @@ public class Agendamento {
     public static Agendamento criar(ClienteId clienteId, BarbeiroId barbeiroId, Contato contato,
                                     LocalDateTime inicio, List<ItemDeServico> itens,
                                     AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        if (!inicio.isAfter(agora)) {
+            throw new RegraDeNegocioException("Não é possível agendar em horário passado");
+        }
+
         Periodo periodo = new Periodo(inicio, inicio.plusMinutes(somarDuracoes(itens)));
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
 
