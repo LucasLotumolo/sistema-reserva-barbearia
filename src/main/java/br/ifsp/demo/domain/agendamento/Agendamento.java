@@ -10,8 +10,8 @@ import br.ifsp.demo.exception.RegraDeNegocioException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.time.Duration;
 import java.time.LocalTime;
 
@@ -47,6 +47,19 @@ public class Agendamento {
         this.status = status;
         this.quantidadeDeReagendamentos = quantidadeDeReagendamentos;
         this.avaliacao = avaliacao;
+    }
+
+    public static Agendamento criar(ClienteId clienteId, BarbeiroId barbeiroId, Contato contato,
+                                    LocalDateTime inicio, List<ItemDeServico> itens,
+                                    AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        int duracaoTotal = 0;
+        for (ItemDeServico item : itens) {
+            duracaoTotal = duracaoTotal + item.getDuracaoEmMinutos();
+        }
+        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(duracaoTotal));
+
+        return new Agendamento(new AgendamentoId(UUID.randomUUID()), clienteId, barbeiroId, contato,
+                periodo, itens, StatusAgendamento.AGENDADO, 0, null);
     }
 
     public static Agendamento reconstituir(AgendamentoId id, ClienteId clienteId, BarbeiroId barbeiroId,
