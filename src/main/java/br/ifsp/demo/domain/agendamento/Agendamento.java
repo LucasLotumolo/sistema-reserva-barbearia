@@ -6,7 +6,6 @@ import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.exception.HorarioIndisponivelException;
 import br.ifsp.demo.exception.RegraDeNegocioException;
-import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,7 +31,6 @@ public class Agendamento {
     private final Contato contato;
     private Periodo periodo;
     private final List<ItemDeServico> itens;
-    @Getter
     private StatusAgendamento status;
     private int quantidadeDeReagendamentos;
     private Avaliacao avaliacao;
@@ -256,4 +254,6 @@ public class Agendamento {
     public Periodo getPeriodo() {
         return periodo;
     }
+
+    public StatusAgendamento getStatus() { return status; }
 }
