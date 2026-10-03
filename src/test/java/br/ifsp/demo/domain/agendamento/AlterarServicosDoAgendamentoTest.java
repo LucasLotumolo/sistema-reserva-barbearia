@@ -609,4 +609,49 @@ class AlterarServicosDoAgendamentoTest {
         assertThatThrownBy(() -> agendamento.adicionarItem(barba, agendaVazia))
                 .isInstanceOf(RegraDeNegocioException.class);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Remoção que deixa exatamente 1 item é permitida")
+    void remocaoQueDeixaExatamenteUmItemEPermitida() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()), new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(50)), List.of(corte, barba),
+                StatusAgendamento.AGENDADO, 0, null);
+
+        agendamento.removerItem(barba.getId());
+
+        assertThat(agendamento.getItens()).hasSize(1);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Remoção de serviço em agendamento expirado é rejeitada")
+    void remocaoDeServicoEmAgendamentoExpiradoERejeitada() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()), new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(50)), List.of(corte, barba),
+                StatusAgendamento.EXPIRADO, 0, null);
+
+        assertThatThrownBy(() -> agendamento.removerItem(barba.getId()))
+                .isInstanceOf(RegraDeNegocioException.class);
+    }
 }
