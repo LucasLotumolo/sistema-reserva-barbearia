@@ -6,6 +6,7 @@ import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.HorarioIndisponivelException;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -184,5 +185,35 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
         assertThat(agendamento.getPeriodo().inicio()).isEqualTo(fimExistente);
         assertThat(agendamento.getPeriodo().fim()).isEqualTo(fimExistente.plusMinutes(30));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.5 - [ERROR] Agendamento em horário passado")
+    void agendamentoEmHorarioPassadoDeveSerRejeitado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 14, 0);
+        LocalDateTime inicioPassado = LocalDateTime.of(2026, 10, 1, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicioPassado.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicioPassado,
+                List.of(corte),
+                agendaLivre,
+                agora
+        )).isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Não é possível agendar em horário passado");
     }
 }
