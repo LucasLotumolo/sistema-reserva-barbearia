@@ -230,4 +230,51 @@ class CancelarAgendamentoTest {
 
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.EXPIRADO);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("Cancelamento 1 minuto antes do início é permitido")
+    void cancelamentoUmMinutoAntesDoInicioEPermitido() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        LocalDateTime horarioDoCancelamento = inicio.minusMinutes(1);
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()), new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)), List.of(corte),
+                StatusAgendamento.AGENDADO, 0, null);
+
+        agendamento.cancelar(horarioDoCancelamento);
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CANCELADO);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[Cancelamento no instante exato do início é rejeitado")
+    void cancelamentoNoInstanteExatoDoInicioERejeitado() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        LocalDateTime horarioDoCancelamento = inicio;
+
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()), new Contato("Maria Silva", "11987654321"),
+                new Periodo(inicio, inicio.plusMinutes(30)), List.of(corte),
+                StatusAgendamento.AGENDADO, 0, null);
+
+        assertThatThrownBy(() -> agendamento.cancelar(horarioDoCancelamento))
+                .isInstanceOf(RegraDeNegocioException.class);
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+    }
 }
