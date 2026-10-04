@@ -140,6 +140,7 @@ public class Agendamento {
 
     public void confirmarPresenca(LocalDateTime agora) {
         validarNaoConfirmado();
+        validarAgendamentoAtivo();
         Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
         validarJanelaDeConfirmacaoAberta(tempoAteInicio);
         validarJanelaDeConfirmacaoNaoEncerrada(tempoAteInicio);
