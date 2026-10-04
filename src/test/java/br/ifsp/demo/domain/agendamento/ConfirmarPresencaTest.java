@@ -268,4 +268,38 @@ class ConfirmarPresencaTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.EXPIRADO);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Confirmação de agendamento cancelado deve ser rejeitada")
+    void confirmacaoDeAgendamentoCanceladoDeveSerRejeitada() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 9, 21, 10, 0);
+        LocalDateTime inicio = agora.plusHours(2);
+        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(30));
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Cauã", "16999999999"),
+                periodo,
+                List.of(corte),
+                StatusAgendamento.CANCELADO,
+                0,
+                null
+        );
+
+        assertThatThrownBy(() -> agendamento.confirmarPresenca(agora))
+                .isInstanceOf(RegraDeNegocioException.class);
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CANCELADO);
+    }
 }
