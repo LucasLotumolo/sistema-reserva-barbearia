@@ -226,4 +226,36 @@ class AgendarAtendimentoTest {
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O telefone deve ser válido");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.7 - [OK] Agendamento no limite da antecedência mínima")
+    void agendamentoNoLimiteDaAntecedenciaMinimaDeveSerCriado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = agora.plusMinutes(60);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte),
+                agendaLivre,
+                agora
+        );
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+        assertThat(agendamento.getPeriodo().inicio()).isEqualTo(inicio);
+    }
 }
