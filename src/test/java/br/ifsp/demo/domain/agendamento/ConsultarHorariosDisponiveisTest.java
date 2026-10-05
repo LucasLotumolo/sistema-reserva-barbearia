@@ -5,6 +5,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("US-07 — Consultar horários disponíveis")
 class ConsultarHorariosDisponiveisTest {
@@ -80,6 +82,19 @@ class ConsultarHorariosDisponiveisTest {
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
         assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(9, 0), DATA.atTime(19, 0)));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Consulta para data passada")
+    void consultaParaDataPassadaDeveSerRejeitada() {
+        LocalDate ontem = AGORA.toLocalDate().minusDays(1);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, ontem, List.of());
+
+        assertThatThrownBy(() -> agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("datas passadas");
     }
 
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
