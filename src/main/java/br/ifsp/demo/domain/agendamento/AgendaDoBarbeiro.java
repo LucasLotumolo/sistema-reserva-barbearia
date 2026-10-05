@@ -4,6 +4,7 @@ import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.Periodo;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class AgendaDoBarbeiro {
@@ -16,6 +17,10 @@ public class AgendaDoBarbeiro {
         this.data = data;
         this.agendamentosDoDia = List.copyOf(agendamentosDoDia);
     }
+    public List<Periodo> horariosDisponiveis(int duracaoEmMinutos, LocalDateTime agora) {
+        throw new UnsupportedOperationException("não implementado");
+    }
+
     public boolean estaLivre(Periodo periodo, AgendamentoId agendamentoAtual) {
         boolean livre = true;
         for (Agendamento agendamento : agendamentosDoDia) {
