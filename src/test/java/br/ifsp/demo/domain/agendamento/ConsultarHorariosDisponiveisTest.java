@@ -1,11 +1,16 @@
 package br.ifsp.demo.domain.agendamento;
 
 import br.ifsp.demo.domain.comum.BarbeiroId;
+import br.ifsp.demo.domain.comum.ClienteId;
+import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
+import br.ifsp.demo.domain.servico.ServicoId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,18 +22,59 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConsultarHorariosDisponiveisTest {
 
     private static final int DURACAO_DO_CORTE_EM_MINUTOS = 30;
+    private static final LocalDate DATA = LocalDate.of(2026, 10, 8);
+    private static final LocalDateTime AGORA = LocalDateTime.of(2026, 10, 7, 10, 0);
+    private static final BarbeiroId BARBEIRO = new BarbeiroId(UUID.randomUUID());
 
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
     @DisplayName("[OK] Consulta de dia sem agendamentos")
     void consultaDeDiaSemAgendamentosDeveRetornarTodoOExpediente() {
-        LocalDate data = LocalDate.of(2026, 10, 8);
-        LocalDateTime agora = LocalDateTime.of(2026, 10, 7, 10, 0);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(new BarbeiroId(UUID.randomUUID()), data, List.of());
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of());
 
-        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, agora);
+        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
-        assertThat(disponiveis).containsExactly(new Periodo(data.atTime(9, 0), data.atTime(19, 0)));
+        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(9, 0), DATA.atTime(19, 0)));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Consulta com agenda parcialmente ocupada")
+    void consultaComAgendaParcialmenteOcupadaDeveRetornarApenasOsIntervalosLivres() {
+        Agendamento ocupado = agendamentoDas(10, 0, 11, 0, StatusAgendamento.AGENDADO);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(ocupado));
+
+        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).containsExactly(
+                new Periodo(DATA.atTime(9, 0), DATA.atTime(10, 0)),
+                new Periodo(DATA.atTime(11, 0), DATA.atTime(19, 0))
+        );
+    }
+
+    private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
+                                       StatusAgendamento status) {
+        Periodo periodo = new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                (int) Duration.between(periodo.inicio(), periodo.fim()).toMinutes()
+        );
+
+        return Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                BARBEIRO,
+                new Contato("Herick", "16999999999"),
+                periodo,
+                List.of(corte),
+                status,
+                0,
+                null
+        );
     }
 }
