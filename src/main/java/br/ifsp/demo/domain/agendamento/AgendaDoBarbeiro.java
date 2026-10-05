@@ -6,6 +6,8 @@ import br.ifsp.demo.domain.comum.Periodo;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class AgendaDoBarbeiro {
@@ -19,7 +21,29 @@ public class AgendaDoBarbeiro {
         this.agendamentosDoDia = List.copyOf(agendamentosDoDia);
     }
     public List<Periodo> horariosDisponiveis(int duracaoEmMinutos, LocalDateTime agora) {
-        return List.of(HorarioDeFuncionamento.PADRAO.expedienteDe(data));
+        Periodo expediente = HorarioDeFuncionamento.PADRAO.expedienteDe(data);
+        List<Agendamento> ordenados = new ArrayList<>(agendamentosDoDia);
+        ordenados.sort(Comparator.comparing(agendamento -> agendamento.getPeriodo().inicio()));
+
+        List<Periodo> livres = new ArrayList<>();
+        LocalDateTime inicioDoIntervalo = expediente.inicio();
+
+        for (Agendamento agendamento : ordenados) {
+            Periodo ocupado = agendamento.getPeriodo();
+
+            if (ocupado.inicio().isAfter(inicioDoIntervalo)) {
+                livres.add(new Periodo(inicioDoIntervalo, ocupado.inicio()));
+            }
+            if (ocupado.fim().isAfter(inicioDoIntervalo)) {
+                inicioDoIntervalo = ocupado.fim();
+            }
+        }
+
+        if (inicioDoIntervalo.isBefore(expediente.fim())) {
+            livres.add(new Periodo(inicioDoIntervalo, expediente.fim()));
+        }
+
+        return livres;
     }
 
     public boolean estaLivre(Periodo periodo, AgendamentoId agendamentoAtual) {
