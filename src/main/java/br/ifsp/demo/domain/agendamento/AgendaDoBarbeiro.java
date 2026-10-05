@@ -22,13 +22,18 @@ public class AgendaDoBarbeiro {
     }
     public List<Periodo> horariosDisponiveis(int duracaoEmMinutos, LocalDateTime agora) {
         Periodo expediente = HorarioDeFuncionamento.PADRAO.expedienteDe(data);
-        List<Agendamento> ordenados = new ArrayList<>(agendamentosDoDia);
-        ordenados.sort(Comparator.comparing(agendamento -> agendamento.getPeriodo().inicio()));
+        List<Agendamento> ativos = new ArrayList<>();
+        for (Agendamento agendamento : agendamentosDoDia) {
+            if (agendamento.estaAtivo()) {
+                ativos.add(agendamento);
+            }
+        }
+        ativos.sort(Comparator.comparing(agendamento -> agendamento.getPeriodo().inicio()));
 
         List<Periodo> livres = new ArrayList<>();
         LocalDateTime inicioDoIntervalo = expediente.inicio();
 
-        for (Agendamento agendamento : ordenados) {
+        for (Agendamento agendamento : ativos) {
             Periodo ocupado = agendamento.getPeriodo();
 
             if (ocupado.inicio().isAfter(inicioDoIntervalo)) {

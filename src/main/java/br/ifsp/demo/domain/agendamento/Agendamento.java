@@ -165,6 +165,10 @@ public class Agendamento {
         }
     }
 
+    public boolean estaAtivo() {
+        return status == StatusAgendamento.AGENDADO || status == StatusAgendamento.CONFIRMADO;
+    }
+
     public int duracaoTotalEmMinutos() {
         int total = 0;
         for (ItemDeServico item : itens) {
