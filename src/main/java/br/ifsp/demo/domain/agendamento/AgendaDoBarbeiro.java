@@ -3,6 +3,7 @@ package br.ifsp.demo.domain.agendamento;
 import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.HorarioDeFuncionamento;
 import br.ifsp.demo.domain.comum.Periodo;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +22,10 @@ public class AgendaDoBarbeiro {
         this.agendamentosDoDia = List.copyOf(agendamentosDoDia);
     }
     public List<Periodo> horariosDisponiveis(int duracaoEmMinutos, LocalDateTime agora) {
+        if (data.isBefore(agora.toLocalDate())) {
+            throw new RegraDeNegocioException("Não é possível consultar disponibilidade para datas passadas");
+        }
+
         Periodo expediente = HorarioDeFuncionamento.PADRAO.expedienteDe(data);
         List<Agendamento> ativos = new ArrayList<>();
         for (Agendamento agendamento : agendamentosDoDia) {
