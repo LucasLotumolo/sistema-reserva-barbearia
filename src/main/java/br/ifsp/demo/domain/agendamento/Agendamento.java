@@ -18,6 +18,7 @@ import java.time.LocalTime;
 public class Agendamento {
     private static final int MAXIMO_DE_ITENS = 5;
     private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
+    private static final int ANTECEDENCIA_MINIMA_AGENDAMENTO_EM_MINUTOS = 60;
     private static final int ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS = 120;
     private static final int MAXIMO_DE_REAGENDAMENTOS = 3;
     private static final LocalTime HORARIO_ABERTURA = LocalTime.of(9, 0);
@@ -54,6 +55,12 @@ public class Agendamento {
                                     AgendaDoBarbeiro agenda, LocalDateTime agora) {
         if (!inicio.isAfter(agora)) {
             throw new RegraDeNegocioException("Não é possível agendar em horário passado");
+        }
+
+        Duration tempoAteInicio = Duration.between(agora, inicio);
+        if (tempoAteInicio.compareTo(Duration.ofMinutes(ANTECEDENCIA_MINIMA_AGENDAMENTO_EM_MINUTOS)) < 0) {
+            throw new RegraDeNegocioException("Agendamento exige no mínimo "
+                    + ANTECEDENCIA_MINIMA_AGENDAMENTO_EM_MINUTOS + " minutos de antecedência");
         }
 
         Periodo periodo = new Periodo(inicio, inicio.plusMinutes(somarDuracoes(itens)));
