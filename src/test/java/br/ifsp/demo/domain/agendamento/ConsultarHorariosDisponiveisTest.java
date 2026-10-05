@@ -68,6 +68,20 @@ class ConsultarHorariosDisponiveisTest {
         assertThat(disponiveis).isEmpty();
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Agendamentos encerrados não bloqueiam a disponibilidade")
+    void agendamentosCanceladosEExpiradosDevemLiberarOHorario() {
+        Agendamento cancelado = agendamentoDas(10, 0, 11, 0, StatusAgendamento.CANCELADO);
+        Agendamento expirado = agendamentoDas(14, 0, 15, 0, StatusAgendamento.EXPIRADO);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(cancelado, expirado));
+
+        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(9, 0), DATA.atTime(19, 0)));
+    }
+
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
                                        StatusAgendamento status) {
         Periodo periodo = new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
