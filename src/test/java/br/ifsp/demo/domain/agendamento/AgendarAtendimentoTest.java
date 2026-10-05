@@ -216,4 +216,14 @@ class AgendarAtendimentoTest {
         )).isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("Não é possível agendar em horário passado");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.6 - [ERROR] Telefone de contato inválido")
+    void telefoneComQuantidadeDeDigitosInvalidaDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato("Lucas", "123"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O telefone deve ser válido");
+    }
 }
