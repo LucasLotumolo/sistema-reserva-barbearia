@@ -258,4 +258,34 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
         assertThat(agendamento.getPeriodo().inicio()).isEqualTo(inicio);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("1.8 - [ERROR] Agendamento sem a antecedência mínima")
+    void agendamentoSemAntecedenciaMinimaDeveSerRejeitado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = agora.plusMinutes(59);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte),
+                agendaLivre,
+                agora
+        )).isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Agendamento exige no mínimo 60 minutos de antecedência");
+    }
 }
