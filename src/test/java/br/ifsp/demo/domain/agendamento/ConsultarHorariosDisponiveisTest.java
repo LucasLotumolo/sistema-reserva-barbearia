@@ -97,6 +97,19 @@ class ConsultarHorariosDisponiveisTest {
                 .hasMessageContaining("datas passadas");
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Disponibilidade de encaixe entre atendimentos")
+    void periodoQueComecaNoTerminoDeOutroAtendimentoDeveEstarDisponivel() {
+        Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(manha));
+
+        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(19, 0)));
+    }
+
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
                                        StatusAgendamento status) {
         Periodo periodo = new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
