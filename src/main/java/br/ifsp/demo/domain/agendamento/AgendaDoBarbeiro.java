@@ -32,7 +32,7 @@ public class AgendaDoBarbeiro {
             Periodo ocupado = agendamento.getPeriodo();
 
             if (ocupado.inicio().isAfter(inicioDoIntervalo)) {
-                livres.add(new Periodo(inicioDoIntervalo, ocupado.inicio()));
+                adicionarSeComporta(livres, new Periodo(inicioDoIntervalo, ocupado.inicio()), duracaoEmMinutos);
             }
             if (ocupado.fim().isAfter(inicioDoIntervalo)) {
                 inicioDoIntervalo = ocupado.fim();
@@ -40,10 +40,18 @@ public class AgendaDoBarbeiro {
         }
 
         if (inicioDoIntervalo.isBefore(expediente.fim())) {
-            livres.add(new Periodo(inicioDoIntervalo, expediente.fim()));
+            adicionarSeComporta(livres, new Periodo(inicioDoIntervalo, expediente.fim()), duracaoEmMinutos);
         }
 
         return livres;
+    }
+
+    private void adicionarSeComporta(List<Periodo> livres, Periodo intervalo, int duracaoEmMinutos) {
+        if (intervalo.duracaoEmMinutos() < duracaoEmMinutos) {
+            return;
+        }
+
+        livres.add(intervalo);
     }
 
     public boolean estaLivre(Periodo periodo, AgendamentoId agendamentoAtual) {
