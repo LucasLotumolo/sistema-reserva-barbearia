@@ -72,6 +72,8 @@ public class Agendamento {
         }
 
         Periodo periodo = new Periodo(inicio, inicio.plusMinutes(somarDuracoes(itens)));
+        validarExpediente(periodo);
+
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
 
         if (!agenda.estaLivre(periodo, id)) {
@@ -233,7 +235,7 @@ public class Agendamento {
         }
     }
 
-    private void validarExpediente(Periodo periodo) {
+    private static void validarExpediente(Periodo periodo) {
         LocalTime inicio = periodo.inicio().toLocalTime();
         LocalTime fim = periodo.fim().toLocalTime();
         if (inicio.isBefore(HORARIO_ABERTURA) || fim.isAfter(HORARIO_FECHAMENTO)) {
