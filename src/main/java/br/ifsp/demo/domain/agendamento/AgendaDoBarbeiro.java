@@ -20,9 +20,10 @@ public class AgendaDoBarbeiro {
         boolean livre = true;
         for (Agendamento agendamento : agendamentosDoDia) {
             boolean ehOMesmoAgendamento = agendamento.getId().equals(agendamentoAtual);
-            boolean estaCancelado = agendamento.getStatus() == StatusAgendamento.CANCELADO;
+            boolean liberouOHorario = agendamento.getStatus() == StatusAgendamento.CANCELADO
+                    || agendamento.getStatus() == StatusAgendamento.EXPIRADO;
 
-            if (!ehOMesmoAgendamento && !estaCancelado) {
+            if (!ehOMesmoAgendamento && !liberouOHorario) {
                 if (agendamento.getPeriodo().sobrepoe(periodo)) {
                     livre = false;
                 }
