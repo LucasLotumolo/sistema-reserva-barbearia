@@ -616,4 +616,36 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
         assertThat(agendamento.getPeriodo().inicio()).isEqualTo(inicio);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[OK] Fim às 19:00 (exatamente no fechamento)")
+    void fimExatamenteNoFechamentoDeveSerCriado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 18, 30);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte),
+                agendaLivre,
+                agora
+        );
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+        assertThat(agendamento.getPeriodo().fim()).isEqualTo(LocalDateTime.of(2026, 10, 2, 19, 0));
+    }
 }
