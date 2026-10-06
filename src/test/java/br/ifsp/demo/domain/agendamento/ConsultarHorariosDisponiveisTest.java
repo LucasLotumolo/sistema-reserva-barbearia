@@ -10,11 +10,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -168,6 +170,29 @@ class ConsultarHorariosDisponiveisTest {
     @DisplayName("US07-CT5 — Duração maior que o expediente devolve lista vazia")
     void duracaoMaiorQueOExpedienteDeveDevolverListaVazia() {
         List<Periodo> disponiveis = agendaCom().horariosDisponiveis(601, AGORA);
+
+        assertThat(disponiveis).isEmpty();
+    }
+
+    @ParameterizedTest(name = "agora às {0}, primeiro horário às {1}")
+    @CsvSource({"15:00, 15:00", "08:00, 09:00"})
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT6 e US07-CT7 — Consulta para hoje começa no instante atual ou na abertura")
+    void consultaParaHojeDeveComecarNoInstanteAtualOuNaAbertura(LocalTime horaAtual, LocalTime primeiroHorario) {
+        LocalDateTime agora = DATA.atTime(horaAtual);
+
+        List<Periodo> disponiveis = agendaCom().horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, agora);
+
+        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(primeiroHorario), DATA.atTime(19, 0)));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT8 — Consulta para hoje a partir do fechamento devolve lista vazia")
+    void consultaParaHojeAPartirDoFechamentoDeveDevolverListaVazia() {
+        List<Periodo> disponiveis = agendaCom().horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, DATA.atTime(19, 0));
 
         assertThat(disponiveis).isEmpty();
     }
