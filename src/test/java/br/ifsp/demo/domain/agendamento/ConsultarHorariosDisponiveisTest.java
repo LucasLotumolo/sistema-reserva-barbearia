@@ -124,6 +124,19 @@ class ConsultarHorariosDisponiveisTest {
         assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(10, 30)));
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Consulta de dia completamente ocupado")
+    void consultaDeDiaCompletamenteOcupadoNaoDeveRetornarHorarios() {
+        Agendamento diaInteiro = agendamentoDas(9, 0, 19, 0, StatusAgendamento.AGENDADO);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(diaInteiro));
+
+        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).isEmpty();
+    }
+
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
                                        StatusAgendamento status) {
         Periodo periodo = new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
