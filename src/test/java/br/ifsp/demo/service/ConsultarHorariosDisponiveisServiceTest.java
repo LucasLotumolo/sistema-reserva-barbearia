@@ -14,6 +14,7 @@ import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("US-07 — Serviço de consulta de horários disponíveis")
 class ConsultarHorariosDisponiveisServiceTest {
@@ -57,6 +59,48 @@ class ConsultarHorariosDisponiveisServiceTest {
         List<Periodo> disponiveis = service.consultar(BARBEIRO, DATA, List.of(CORTE.id(), BARBA.id()));
 
         assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(11, 0), DATA.atTime(19, 0)));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT13 — Serviço fora do catálogo é rejeitado")
+    void servicoForaDoCatalogoDeveSerRejeitado() {
+        ConsultarHorariosDisponiveisService service = serviceComAgenda();
+        ServicoId inexistente = new ServicoId(UUID.randomUUID());
+
+        assertThatThrownBy(() -> service.consultar(BARBEIRO, DATA, List.of(CORTE.id(), inexistente)))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("Serviço não encontrado");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT14 — Consulta sem serviços é rejeitada")
+    void consultaSemServicosDeveSerRejeitada() {
+        ConsultarHorariosDisponiveisService service = serviceComAgenda();
+
+        assertThatThrownBy(() -> service.consultar(BARBEIRO, DATA, List.of()))
+                .isInstanceOf(RegraDeNegocioException.class);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT15 — Intervalo livre igual à soma das durações dos serviços é devolvido")
+    void intervaloIgualASomaDasDuracoesDeveSerDevolvido() {
+        ConsultarHorariosDisponiveisService service = serviceComAgenda(
+                agendamentoDas(9, 0, 10, 0), agendamentoDas(11, 15, 19, 0));
+
+        List<Periodo> disponiveis = service.consultar(BARBEIRO, DATA, List.of(CORTE.id(), BARBA.id()));
+
+        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(11, 15)));
+    }
+
+    private static ConsultarHorariosDisponiveisService serviceComAgenda(Agendamento... agendamentos) {
+        AgendamentoRepository repositorio = (barbeiro, data) -> List.of(agendamentos);
+        return new ConsultarHorariosDisponiveisService(repositorio, CATALOGO, RELOGIO);
     }
 
     private static Servico servico(String nome, int duracaoEmMinutos) {
