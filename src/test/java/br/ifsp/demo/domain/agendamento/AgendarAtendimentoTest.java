@@ -318,4 +318,34 @@ class AgendarAtendimentoTest {
         )).isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("Não é possível agendar em horário passado");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Antecedência de 59 minutos e 59 segundos")
+    void antecedenciaUmSegundoAbaixoDoLimiteDeveSerRejeitada() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = agora.plusMinutes(59).plusSeconds(59);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte),
+                agendaLivre,
+                agora
+        )).isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Agendamento exige no mínimo 60 minutos de antecedência");
+    }
 }
