@@ -678,4 +678,48 @@ class AgendarAtendimentoTest {
         )).isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O periodo deve estar dentro do horario de funcionamento");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[OK] Agendamento expirado não bloqueia o mesmo horário")
+    void agendamentoExpiradoNaoDeveBloquearOHorario() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 14, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamentoExpirado = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Cauã", "16988888888"),
+                new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.EXPIRADO,
+                0,
+                null
+        );
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(
+                barbeiroId, inicio.toLocalDate(), List.of(agendamentoExpirado));
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte),
+                agenda,
+                agora
+        );
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+    }
 }
