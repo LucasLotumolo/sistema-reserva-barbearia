@@ -440,4 +440,41 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getItens()).hasSize(5);
         assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(150);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Agendamento com 6 serviços (acima do limite máximo)")
+    void agendamentoComSeisServicosDeveSerRejeitado() {
+        List<ItemDeServico> seisItens = List.of(
+                new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                        "Corte", new Dinheiro(new BigDecimal("40.00")), 30),
+                new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                        "Barba", new Dinheiro(new BigDecimal("25.00")), 30),
+                new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                        "Sobrancelha", new Dinheiro(new BigDecimal("15.00")), 30),
+                new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                        "Hidratação", new Dinheiro(new BigDecimal("30.00")), 30),
+                new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                        "Pigmentação", new Dinheiro(new BigDecimal("50.00")), 30),
+                new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                        "Massagem", new Dinheiro(new BigDecimal("20.00")), 30)
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 14, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                seisItens,
+                agendaLivre,
+                agora
+        )).isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("Limite de serviços por agendamento atingido");
+    }
 }
