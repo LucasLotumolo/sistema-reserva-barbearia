@@ -477,4 +477,44 @@ class AgendarAtendimentoTest {
         )).isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("Limite de serviços por agendamento atingido");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[OK] Duração total de 240 minutos (limite máximo)")
+    void duracaoTotalDeDuzentosEQuarentaMinutosDeveSerCriada() {
+        ItemDeServico corteLongo = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                120
+        );
+        ItemDeServico barbaLonga = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Barba",
+                new Dinheiro(new BigDecimal("25.00")),
+                120
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corteLongo, barbaLonga),
+                agendaLivre,
+                agora
+        );
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+        assertThat(agendamento.duracaoTotalEmMinutos()).isEqualTo(240);
+        assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicio.plusMinutes(240));
+    }
 }
