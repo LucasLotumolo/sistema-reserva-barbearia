@@ -32,11 +32,11 @@ class ConsultarHorariosDisponiveisTest {
     @Tag("TDD")
     @DisplayName("[OK] Consulta de dia sem agendamentos")
     void consultaDeDiaSemAgendamentosDeveRetornarTodoOExpediente() {
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of());
+        AgendaDoBarbeiro agenda = agendaCom();
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
-        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(9, 0), DATA.atTime(19, 0)));
+        assertThat(disponiveis).containsExactly(periodoDas(9, 0, 19, 0));
     }
 
     @Test
@@ -45,13 +45,13 @@ class ConsultarHorariosDisponiveisTest {
     @DisplayName("[OK] Consulta com agenda parcialmente ocupada")
     void consultaComAgendaParcialmenteOcupadaDeveRetornarApenasOsIntervalosLivres() {
         Agendamento ocupado = agendamentoDas(10, 0, 11, 0, StatusAgendamento.AGENDADO);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(ocupado));
+        AgendaDoBarbeiro agenda = agendaCom(ocupado);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
         assertThat(disponiveis).containsExactly(
-                new Periodo(DATA.atTime(9, 0), DATA.atTime(10, 0)),
-                new Periodo(DATA.atTime(11, 0), DATA.atTime(19, 0))
+                periodoDas(9, 0, 10, 0),
+                periodoDas(11, 0, 19, 0)
         );
     }
 
@@ -62,7 +62,7 @@ class ConsultarHorariosDisponiveisTest {
     void intervaloLivreMenorQueADuracaoNaoDeveSerRetornado() {
         Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
         Agendamento tarde = agendamentoDas(10, 20, 19, 0, StatusAgendamento.AGENDADO);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(manha, tarde));
+        AgendaDoBarbeiro agenda = agendaCom(manha, tarde);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
@@ -76,11 +76,11 @@ class ConsultarHorariosDisponiveisTest {
     void agendamentosCanceladosEExpiradosDevemLiberarOHorario() {
         Agendamento cancelado = agendamentoDas(10, 0, 11, 0, StatusAgendamento.CANCELADO);
         Agendamento expirado = agendamentoDas(14, 0, 15, 0, StatusAgendamento.EXPIRADO);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(cancelado, expirado));
+        AgendaDoBarbeiro agenda = agendaCom(cancelado, expirado);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
-        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(9, 0), DATA.atTime(19, 0)));
+        assertThat(disponiveis).containsExactly(periodoDas(9, 0, 19, 0));
     }
 
     @Test
@@ -102,11 +102,11 @@ class ConsultarHorariosDisponiveisTest {
     @DisplayName("[OK] Disponibilidade de encaixe entre atendimentos")
     void periodoQueComecaNoTerminoDeOutroAtendimentoDeveEstarDisponivel() {
         Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(manha));
+        AgendaDoBarbeiro agenda = agendaCom(manha);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
-        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(19, 0)));
+        assertThat(disponiveis).containsExactly(periodoDas(10, 0, 19, 0));
     }
 
     @Test
@@ -116,11 +116,11 @@ class ConsultarHorariosDisponiveisTest {
     void intervaloLivreIgualADuracaoDeveSerRetornado() {
         Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
         Agendamento tarde = agendamentoDas(10, 30, 19, 0, StatusAgendamento.AGENDADO);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(manha, tarde));
+        AgendaDoBarbeiro agenda = agendaCom(manha, tarde);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
-        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(10, 30)));
+        assertThat(disponiveis).containsExactly(periodoDas(10, 0, 10, 30));
     }
 
     @Test
@@ -129,16 +129,24 @@ class ConsultarHorariosDisponiveisTest {
     @DisplayName("[OK] Consulta de dia completamente ocupado")
     void consultaDeDiaCompletamenteOcupadoNaoDeveRetornarHorarios() {
         Agendamento diaInteiro = agendamentoDas(9, 0, 19, 0, StatusAgendamento.AGENDADO);
-        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(diaInteiro));
+        AgendaDoBarbeiro agenda = agendaCom(diaInteiro);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
 
         assertThat(disponiveis).isEmpty();
     }
 
+    private AgendaDoBarbeiro agendaCom(Agendamento... agendamentos) {
+        return new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(agendamentos));
+    }
+
+    private Periodo periodoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim) {
+        return new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
+    }
+
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
                                        StatusAgendamento status) {
-        Periodo periodo = new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
+        Periodo periodo = periodoDas(horaInicio, minutoInicio, horaFim, minutoFim);
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
                 new ServicoId(UUID.randomUUID()),
