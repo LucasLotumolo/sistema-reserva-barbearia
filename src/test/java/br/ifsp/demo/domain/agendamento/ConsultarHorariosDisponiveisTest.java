@@ -197,6 +197,57 @@ class ConsultarHorariosDisponiveisTest {
         assertThat(disponiveis).isEmpty();
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT9 — Intervalo livre um minuto menor que a duração é descartado")
+    void intervaloLivreUmMinutoMenorQueADuracaoDeveSerDescartado() {
+        Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
+        Agendamento tarde = agendamentoDas(10, 29, 19, 0, StatusAgendamento.AGENDADO);
+
+        List<Periodo> disponiveis = agendaCom(manha, tarde).horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).isEmpty();
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT10 — Intervalo livre um minuto maior que a duração é devolvido")
+    void intervaloLivreUmMinutoMaiorQueADuracaoDeveSerDevolvido() {
+        Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
+        Agendamento tarde = agendamentoDas(10, 31, 19, 0, StatusAgendamento.AGENDADO);
+
+        List<Periodo> disponiveis = agendaCom(manha, tarde).horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).containsExactly(periodoDas(10, 0, 10, 31));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT11 — Agendamento confirmado bloqueia o horário")
+    void agendamentoConfirmadoDeveBloquearOHorario() {
+        Agendamento confirmado = agendamentoDas(10, 0, 11, 0, StatusAgendamento.CONFIRMADO);
+
+        List<Periodo> disponiveis = agendaCom(confirmado).horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).containsExactly(periodoDas(9, 0, 10, 0), periodoDas(11, 0, 19, 0));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT12 — Agenda com agendamento de outra data é rejeitada")
+    void agendaComAgendamentoDeOutraDataDeveSerRejeitada() {
+        LocalDate depoisDeAmanha = DATA.plusDays(1);
+        Periodo periodoDeOutroDia = new Periodo(depoisDeAmanha.atTime(10, 0), depoisDeAmanha.atTime(11, 0));
+        Agendamento deOutroDia = agendamentoNo(periodoDeOutroDia, StatusAgendamento.AGENDADO);
+
+        assertThatThrownBy(() -> agendaCom(deOutroDia))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     private AgendaDoBarbeiro agendaCom(Agendamento... agendamentos) {
         return new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(agendamentos));
     }
@@ -207,7 +258,10 @@ class ConsultarHorariosDisponiveisTest {
 
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
                                        StatusAgendamento status) {
-        Periodo periodo = periodoDas(horaInicio, minutoInicio, horaFim, minutoFim);
+        return agendamentoNo(periodoDas(horaInicio, minutoInicio, horaFim, minutoFim), status);
+    }
+
+    private Agendamento agendamentoNo(Periodo periodo, StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
                 new ServicoId(UUID.randomUUID()),
