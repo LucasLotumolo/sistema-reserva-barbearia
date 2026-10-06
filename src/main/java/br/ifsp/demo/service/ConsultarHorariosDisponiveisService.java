@@ -1,13 +1,17 @@
 package br.ifsp.demo.service;
 
+import br.ifsp.demo.domain.agendamento.AgendaDoBarbeiro;
+import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
 import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.CatalogoDeServicos;
+import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ConsultarHorariosDisponiveisService {
@@ -23,6 +27,15 @@ public class ConsultarHorariosDisponiveisService {
     }
 
     public List<Periodo> consultar(BarbeiroId barbeiroId, LocalDate data, List<ServicoId> servicos) {
-        throw new UnsupportedOperationException("não implementado");
+        int duracaoTotalEmMinutos = 0;
+        for (ServicoId servicoId : servicos) {
+            Servico servico = catalogoDeServicos.porId(servicoId).orElseThrow();
+            duracaoTotalEmMinutos += servico.duracaoEmMinutos();
+        }
+
+        List<Agendamento> agendamentosDoDia = agendamentoRepository.porBarbeiroEData(barbeiroId, data);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, data, agendamentosDoDia);
+
+        return agenda.horariosDisponiveis(duracaoTotalEmMinutos, LocalDateTime.now(clock));
     }
 }
