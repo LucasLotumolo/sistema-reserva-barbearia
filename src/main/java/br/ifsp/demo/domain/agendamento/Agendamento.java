@@ -56,6 +56,9 @@ public class Agendamento {
         if (itens.isEmpty()) {
             throw new RegraDeNegocioException("O agendamento deve conter ao menos um serviço");
         }
+        if (itens.size() > MAXIMO_DE_ITENS) {
+            throw new RegraDeNegocioException("Limite de serviços por agendamento atingido");
+        }
 
         if (!inicio.isAfter(agora)) {
             throw new RegraDeNegocioException("Não é possível agendar em horário passado");
