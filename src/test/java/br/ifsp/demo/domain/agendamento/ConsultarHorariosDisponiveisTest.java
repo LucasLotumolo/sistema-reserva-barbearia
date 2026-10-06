@@ -9,6 +9,8 @@ import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -132,6 +134,40 @@ class ConsultarHorariosDisponiveisTest {
         AgendaDoBarbeiro agenda = agendaCom(diaInteiro);
 
         List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).isEmpty();
+    }
+
+    @ParameterizedTest(name = "duração de {0} min")
+    @ValueSource(ints = {0, -30})
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT1 e US07-CT2 — Duração pedida não positiva é rejeitada")
+    void duracaoNaoPositivaDeveSerRejeitada(int duracaoEmMinutos) {
+        AgendaDoBarbeiro agenda = agendaCom();
+
+        assertThatThrownBy(() -> agenda.horariosDisponiveis(duracaoEmMinutos, AGORA))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("duração");
+    }
+
+    @ParameterizedTest(name = "duração de {0} min")
+    @ValueSource(ints = {1, 600})
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT3 e US07-CT4 — Duração dentro do expediente devolve o dia inteiro")
+    void duracaoDentroDoExpedienteDeveDevolverODiaInteiro(int duracaoEmMinutos) {
+        List<Periodo> disponiveis = agendaCom().horariosDisponiveis(duracaoEmMinutos, AGORA);
+
+        assertThat(disponiveis).containsExactly(periodoDas(9, 0, 19, 0));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US07-CT5 — Duração maior que o expediente devolve lista vazia")
+    void duracaoMaiorQueOExpedienteDeveDevolverListaVazia() {
+        List<Periodo> disponiveis = agendaCom().horariosDisponiveis(601, AGORA);
 
         assertThat(disponiveis).isEmpty();
     }
