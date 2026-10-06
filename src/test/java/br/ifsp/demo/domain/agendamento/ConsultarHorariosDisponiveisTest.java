@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -145,7 +144,7 @@ class ConsultarHorariosDisponiveisTest {
                 new ServicoId(UUID.randomUUID()),
                 "Corte",
                 new Dinheiro(new BigDecimal("40.00")),
-                (int) Duration.between(periodo.inicio(), periodo.fim()).toMinutes()
+                periodo.duracaoEmMinutos()
         );
 
         return Agendamento.reconstituir(
