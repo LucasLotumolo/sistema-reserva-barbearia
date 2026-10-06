@@ -764,4 +764,50 @@ class AgendarAtendimentoTest {
                 agora
         )).isInstanceOf(HorarioIndisponivelException.class);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[OK] Encaixe imediatamente antes de outro atendimento")
+    void encaixeImediatamenteAntesDeOutroAtendimentoDeveSerCriado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicioExistente = LocalDateTime.of(2026, 10, 2, 14, 0);
+        LocalDateTime inicioNovo = inicioExistente.minusMinutes(30);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendamentoExistente = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Cauã", "16988888888"),
+                new Periodo(inicioExistente, inicioExistente.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(
+                barbeiroId, inicioExistente.toLocalDate(), List.of(agendamentoExistente));
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicioNovo,
+                List.of(corte),
+                agenda,
+                agora
+        );
+
+        assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicioExistente);
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+    }
 }
