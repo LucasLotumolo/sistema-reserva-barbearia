@@ -53,6 +53,10 @@ public class Agendamento {
     public static Agendamento criar(ClienteId clienteId, BarbeiroId barbeiroId, Contato contato,
                                     LocalDateTime inicio, List<ItemDeServico> itens,
                                     AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        if (itens.isEmpty()) {
+            throw new RegraDeNegocioException("O agendamento deve conter ao menos um serviço");
+        }
+
         if (!inicio.isAfter(agora)) {
             throw new RegraDeNegocioException("Não é possível agendar em horário passado");
         }
