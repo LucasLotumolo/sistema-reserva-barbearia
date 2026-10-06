@@ -59,6 +59,7 @@ public class Agendamento {
         if (itens.size() > MAXIMO_DE_ITENS) {
             throw new RegraDeNegocioException("Limite de serviços por agendamento atingido");
         }
+        validarDuracaoMaxima(somarDuracoes(itens));
 
         if (!inicio.isAfter(agora)) {
             throw new RegraDeNegocioException("Não é possível agendar em horário passado");
@@ -226,7 +227,7 @@ public class Agendamento {
         }
     }
 
-    private void validarDuracaoMaxima(int duracaoEmMinutos) {
+    private static void validarDuracaoMaxima(int duracaoEmMinutos) {
         if (duracaoEmMinutos > DURACAO_MAXIMA_EM_MINUTOS) {
             throw new RegraDeNegocioException("O agendamento ultrapassaria a duração máxima permitida");
         }
