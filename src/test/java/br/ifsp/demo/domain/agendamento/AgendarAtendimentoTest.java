@@ -380,4 +380,26 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
         assertThat(agendamento.getPeriodo().inicio()).isEqualTo(inicio);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Agendamento sem nenhum serviço")
+    void agendamentoSemNenhumServicoDeveSerRejeitado() {
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 14, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        assertThatThrownBy(() -> Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(),
+                agendaLivre,
+                agora
+        )).isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O agendamento deve conter ao menos um serviço");
+    }
 }
