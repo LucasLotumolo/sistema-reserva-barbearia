@@ -110,6 +110,20 @@ class ConsultarHorariosDisponiveisTest {
         assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(19, 0)));
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Intervalo livre exatamente igual à duração dos serviços")
+    void intervaloLivreIgualADuracaoDeveSerRetornado() {
+        Agendamento manha = agendamentoDas(9, 0, 10, 0, StatusAgendamento.AGENDADO);
+        Agendamento tarde = agendamentoDas(10, 30, 19, 0, StatusAgendamento.AGENDADO);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(manha, tarde));
+
+        List<Periodo> disponiveis = agenda.horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, AGORA);
+
+        assertThat(disponiveis).containsExactly(new Periodo(DATA.atTime(10, 0), DATA.atTime(10, 30)));
+    }
+
     private Agendamento agendamentoDas(int horaInicio, int minutoInicio, int horaFim, int minutoFim,
                                        StatusAgendamento status) {
         Periodo periodo = new Periodo(DATA.atTime(horaInicio, minutoInicio), DATA.atTime(horaFim, minutoFim));
