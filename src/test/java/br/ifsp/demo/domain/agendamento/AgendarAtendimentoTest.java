@@ -584,4 +584,36 @@ class AgendarAtendimentoTest {
         )).isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O periodo deve estar dentro do horario de funcionamento");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[OK] Início às 09:00 (exatamente na abertura)")
+    void inicioExatamenteNaAberturaDeveSerCriado() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 9, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        AgendaDoBarbeiro agendaLivre = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(), List.of());
+
+        Agendamento agendamento = Agendamento.criar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(corte),
+                agendaLivre,
+                agora
+        );
+
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
+        assertThat(agendamento.getPeriodo().inicio()).isEqualTo(inicio);
+    }
 }
