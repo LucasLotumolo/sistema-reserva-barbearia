@@ -93,6 +93,20 @@ class AvaliarAtendimentoTest {
         assertThat(agendamento.getAvaliacao()).isNull();
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Avaliação duplicada")
+    void avaliacaoDuplicadaDeveSerRejeitadaMantendoAOriginal() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+        agendamento.avaliar(4, APOS_O_TERMINO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(2, APOS_O_TERMINO.plusHours(1)))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("já foi avaliado");
+        assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(4, APOS_O_TERMINO));
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
