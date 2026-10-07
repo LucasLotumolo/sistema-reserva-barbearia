@@ -5,6 +5,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("US-08 — Avaliar atendimento")
 class AvaliarAtendimentoTest {
@@ -34,6 +36,19 @@ class AvaliarAtendimentoTest {
         agendamento.avaliar(4, APOS_O_TERMINO);
 
         assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(4, APOS_O_TERMINO));
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Nota abaixo do mínimo")
+    void notaAbaixoDoMinimoDeveSerRejeitada() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(0, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("entre 1 e 5");
+        assertThat(agendamento.getAvaliacao()).isNull();
     }
 
     private Agendamento agendamentoCom(StatusAgendamento status) {
