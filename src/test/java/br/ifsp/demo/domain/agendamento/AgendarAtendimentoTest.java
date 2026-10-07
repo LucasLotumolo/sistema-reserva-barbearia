@@ -820,4 +820,14 @@ class AgendarAtendimentoTest {
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O telefone deve ser válido");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Telefone com 12 dígitos (acima do máximo)")
+    void telefoneComDozeDigitosDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato("Lucas", "169999999999"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O telefone deve ser válido");
+    }
 }
