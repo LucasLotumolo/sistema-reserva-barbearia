@@ -182,6 +182,43 @@ class AvaliarAtendimentoTest {
         assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(4, instante));
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT8 — Agendamento ainda não confirmado não pode ser avaliado")
+    void agendamentoNaoConfirmadoNaoDeveSerAvaliado() {
+        Agendamento agendado = agendamentoCom(StatusAgendamento.AGENDADO);
+
+        assertThatThrownBy(() -> agendado.avaliar(4, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("atendimentos realizados");
+        assertThat(agendado.getAvaliacao()).isNull();
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT9 — Status inválido prevalece sobre nota inválida")
+    void statusInvalidoDevePrevalecerSobreNotaInvalida() {
+        Agendamento cancelado = agendamentoCom(StatusAgendamento.CANCELADO);
+
+        assertThatThrownBy(() -> cancelado.avaliar(9, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("atendimentos realizados");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT10 — Atendimento não terminado prevalece sobre nota inválida")
+    void atendimentoNaoTerminadoDevePrevalecerSobreNotaInvalida() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(0, DATA.atTime(10, 15)))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("após o término");
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
