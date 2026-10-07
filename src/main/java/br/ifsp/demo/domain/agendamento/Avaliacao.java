@@ -6,9 +6,10 @@ import java.time.LocalDateTime;
 
 public record Avaliacao(int nota, LocalDateTime registradaEm) {
     private static final int NOTA_MINIMA = 1;
+    private static final int NOTA_MAXIMA = 5;
 
     public Avaliacao {
-        if (nota < NOTA_MINIMA) {
+        if (nota < NOTA_MINIMA || nota > NOTA_MAXIMA) {
             throw new RegraDeNegocioException("A nota deve estar entre 1 e 5");
         }
     }
