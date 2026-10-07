@@ -890,6 +890,16 @@ class AgendarAtendimentoTest {
 
         assertThatThrownBy(() -> new Periodo(inicio, inicio))
                 .isInstanceOf(RegraDeNegocioException.class)
-                .hasMessage("O fim do periodo deve ser posterior ao inicio");
+                .hasMessage("O fim do periodo deve ser posterior ao início");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Dinheiro com valor negativo")
+    void dinheiroComValorNegativoDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Dinheiro(new BigDecimal("-0.01")))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O valor não pode ser negativo");
     }
 }
