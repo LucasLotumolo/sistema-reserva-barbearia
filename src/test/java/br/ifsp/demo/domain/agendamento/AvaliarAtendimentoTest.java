@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -151,6 +152,34 @@ class AvaliarAtendimentoTest {
         agendamento.avaliar(3, APOS_O_TERMINO);
 
         assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(3, APOS_O_TERMINO));
+    }
+
+    @ParameterizedTest(name = "avaliação às {0}")
+    @ValueSource(strings = {"10:29", "09:00"})
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT4 e US08-CT7 — Avaliação antes do fim do atendimento é rejeitada")
+    void avaliacaoAntesDoFimDoAtendimentoDeveSerRejeitada(LocalTime horario) {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(4, DATA.atTime(horario)))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("após o término");
+        assertThat(agendamento.getAvaliacao()).isNull();
+    }
+
+    @ParameterizedTest(name = "avaliação às {0}")
+    @ValueSource(strings = {"10:30", "10:31"})
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT5 e US08-CT6 — Avaliação a partir do fim do atendimento é registrada no instante informado")
+    void avaliacaoAPartirDoFimDoAtendimentoDeveSerRegistrada(LocalTime horario) {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+        LocalDateTime instante = DATA.atTime(horario);
+
+        agendamento.avaliar(4, instante);
+
+        assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(4, instante));
     }
 
     private Agendamento agendamentoCom(StatusAgendamento status) {
