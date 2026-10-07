@@ -880,4 +880,16 @@ class AgendarAtendimentoTest {
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O nome deve ser informado");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Período com fim igual ao início")
+    void periodoComFimIgualAoInicioDeveSerRejeitado() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 14, 0);
+
+        assertThatThrownBy(() -> new Periodo(inicio, inicio))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O fim do periodo deve ser posterior ao inicio");
+    }
 }
