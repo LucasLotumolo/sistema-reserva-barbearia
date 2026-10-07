@@ -51,6 +51,19 @@ class AvaliarAtendimentoTest {
         assertThat(agendamento.getAvaliacao()).isNull();
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Nota acima do máximo")
+    void notaAcimaDoMaximoDeveSerRejeitada() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(6, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("entre 1 e 5");
+        assertThat(agendamento.getAvaliacao()).isNull();
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
