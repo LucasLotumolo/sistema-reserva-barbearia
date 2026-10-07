@@ -9,6 +9,8 @@ import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -123,6 +125,32 @@ class AvaliarAtendimentoTest {
                 .hasMessageContaining("atendimentos realizados");
         assertThat(cancelado.getAvaliacao()).isNull();
         assertThat(expirado.getAvaliacao()).isNull();
+    }
+
+    @ParameterizedTest(name = "nota {0}")
+    @ValueSource(ints = {-3, 10})
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT1 e US08-CT3 — Nota fora da escala é rejeitada sem registrar avaliação")
+    void notaForaDaEscalaDeveSerRejeitada(int nota) {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(nota, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("entre 1 e 5");
+        assertThat(agendamento.getAvaliacao()).isNull();
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT2 — Nota no meio da escala é registrada")
+    void notaNoMeioDaEscalaDeveSerRegistrada() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        agendamento.avaliar(3, APOS_O_TERMINO);
+
+        assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(3, APOS_O_TERMINO));
     }
 
     private Agendamento agendamentoCom(StatusAgendamento status) {
