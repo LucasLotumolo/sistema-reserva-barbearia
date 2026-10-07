@@ -830,4 +830,14 @@ class AgendarAtendimentoTest {
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O telefone deve ser válido");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Telefone com letras e 11 caracteres")
+    void telefoneComLetrasDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato("Lucas", "1699999abcd"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O telefone deve ser válido");
+    }
 }
