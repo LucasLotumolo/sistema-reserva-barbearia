@@ -166,6 +166,9 @@ public class Agendamento {
     }
 
     public void avaliar(int nota, LocalDateTime agora) {
+        if (status != StatusAgendamento.CONFIRMADO) {
+            throw new RegraDeNegocioException("Apenas atendimentos realizados podem ser avaliados");
+        }
         if (agora.isBefore(periodo.fim())) {
             throw new RegraDeNegocioException("Só é possível avaliar após o término do atendimento");
         }
