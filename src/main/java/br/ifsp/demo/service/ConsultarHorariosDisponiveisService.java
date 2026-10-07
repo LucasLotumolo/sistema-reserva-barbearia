@@ -8,6 +8,7 @@ import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -29,7 +30,8 @@ public class ConsultarHorariosDisponiveisService {
     public List<Periodo> consultar(BarbeiroId barbeiroId, LocalDate data, List<ServicoId> servicos) {
         int duracaoTotalEmMinutos = 0;
         for (ServicoId servicoId : servicos) {
-            Servico servico = catalogoDeServicos.porId(servicoId).orElseThrow();
+            Servico servico = catalogoDeServicos.porId(servicoId)
+                    .orElseThrow(() -> new RegraDeNegocioException("Serviço não encontrado: " + servicoId.valor()));
             duracaoTotalEmMinutos += servico.duracaoEmMinutos();
         }
 
