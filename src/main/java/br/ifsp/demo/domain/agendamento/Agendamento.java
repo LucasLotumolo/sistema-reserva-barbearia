@@ -166,7 +166,7 @@ public class Agendamento {
     }
 
     public void avaliar(int nota, LocalDateTime agora) {
-        throw new UnsupportedOperationException("não implementado");
+        this.avaliacao = new Avaliacao(nota, agora);
     }
 
     public boolean estaAtivo() {
