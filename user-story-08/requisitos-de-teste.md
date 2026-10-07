@@ -29,9 +29,10 @@ geram casos novos.
 | US08-R16 | O serviço aplica a avaliação com o instante do relógio e salva o agendamento | CE válida | serviço (TDD) |
 | US08-R17 | Agendamento inexistente é rejeitado com erro de domínio | CE inválida | — |
 | US08-R18 | Avaliação rejeitada no serviço não é salva | CE inválida | — |
+| US08-R19 | Instante da avaliação nulo é rejeitado com erro de domínio | CE inválida | — |
 
-US08-R1 a US08-R15 se aplicam a `Agendamento.avaliar` e `Avaliacao`; US08-R16 a US08-R18, ao
-`AvaliarAtendimentoService`.
+US08-R1 a US08-R15 e US08-R19 se aplicam a `Agendamento.avaliar` e `Avaliacao`; US08-R16 a
+US08-R18, ao `AvaliarAtendimentoService`.
 
 ## Casos de teste
 
@@ -51,3 +52,5 @@ Atendimento de referência: `CONFIRMADO`, das 10:00 às 10:30.
 | US08-CT10 | Nota 0, às 10:15 | Rejeita pelo término, não pela nota | R15 |
 | US08-CT11 | Serviço com `AgendamentoId` inexistente | Rejeita com erro de agendamento não encontrado | R17 |
 | US08-CT12 | Serviço com nota 0 | Rejeita e não salva o agendamento | R18 |
+| US08-CT13 | `Avaliacao` criada com nota 3 e instante nulo | Rejeita com erro de domínio | R19 |
+| US08-CT14 | Avaliação com nota 4 e instante nulo | Rejeita com erro de domínio | R19 |
