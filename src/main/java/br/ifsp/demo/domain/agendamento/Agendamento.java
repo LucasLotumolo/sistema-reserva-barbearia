@@ -151,8 +151,10 @@ public class Agendamento {
     }
 
     private void validarReagendamento(Periodo novoPeriodo, AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        validarAgendamentoAtivo();
         validarLimiteDeReagendamentos();
         validarAntecedenciaMinima(agora);
+        validarNovoHorarioFuturo(novoPeriodo, agora);
         validarExpediente(novoPeriodo);
         validarDisponibilidadeDeHorario(novoPeriodo, agenda);
     }
@@ -173,6 +175,7 @@ public class Agendamento {
 
     public void confirmarPresenca(LocalDateTime agora) {
         validarNaoConfirmado();
+        validarAgendamentoAtivo();
         Duration tempoAteInicio = Duration.between(agora, periodo.inicio());
         validarJanelaDeConfirmacaoAberta(tempoAteInicio);
         validarJanelaDeConfirmacaoNaoEncerrada(tempoAteInicio);
@@ -218,7 +221,7 @@ public class Agendamento {
     }
 
     private void validarAgendamentoAtivo() {
-        if (status != StatusAgendamento.AGENDADO) {
+        if (status != StatusAgendamento.AGENDADO && status != StatusAgendamento.CONFIRMADO) {
             throw new RegraDeNegocioException("Apenas agendamentos ativos podem ser alterados");
         }
     }
@@ -259,6 +262,12 @@ public class Agendamento {
         long minutosAteInicio = Duration.between(agora, periodo.inicio()).toMinutes();
         if (minutosAteInicio < ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS) {
             throw new RegraDeNegocioException("Reagendamento exige no mínimo " + ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS + " minutos de antecedência");
+        }
+    }
+
+    private void validarNovoHorarioFuturo(Periodo novoPeriodo, LocalDateTime agora) {
+        if (!novoPeriodo.inicio().isAfter(agora)) {
+            throw new RegraDeNegocioException("Nao e permitido agendar em horario passado");
         }
     }
 
