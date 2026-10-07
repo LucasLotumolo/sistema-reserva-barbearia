@@ -219,6 +219,29 @@ class AvaliarAtendimentoTest {
                 .hasMessageContaining("após o término");
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT13 — Avaliação sem instante de registro é rejeitada")
+    void avaliacaoSemInstanteDeRegistroDeveSerRejeitada() {
+        assertThatThrownBy(() -> new Avaliacao(3, null))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("deve ser informado");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("US08-CT14 — Avaliar sem informar o instante é rejeitado")
+    void avaliarSemInformarOInstanteDeveSerRejeitado() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        assertThatThrownBy(() -> agendamento.avaliar(4, null))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("deve ser informado");
+        assertThat(agendamento.getAvaliacao()).isNull();
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
