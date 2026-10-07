@@ -166,6 +166,10 @@ public class Agendamento {
     }
 
     public void avaliar(int nota, LocalDateTime agora) {
+        if (agora.isBefore(periodo.fim())) {
+            throw new RegraDeNegocioException("Só é possível avaliar após o término do atendimento");
+        }
+
         this.avaliacao = new Avaliacao(nota, agora);
     }
 
