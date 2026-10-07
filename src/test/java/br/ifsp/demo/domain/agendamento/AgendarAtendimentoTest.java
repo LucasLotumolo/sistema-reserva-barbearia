@@ -850,4 +850,34 @@ class AgendarAtendimentoTest {
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O telefone deve ser válido");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Nome vazio")
+    void nomeVazioDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato("", "16999999999"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O nome deve ser informado");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Nome nulo")
+    void nomeNuloDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato(null, "16999999999"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O nome deve ser informado");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Nome com espaço")
+    void nomeComEspacoDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato(" ", "16999999999"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O nome deve ser informado");
+    }
 }
