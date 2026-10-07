@@ -107,6 +107,24 @@ class AvaliarAtendimentoTest {
         assertThat(agendamento.getAvaliacao()).isEqualTo(new Avaliacao(4, APOS_O_TERMINO));
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Avaliação de agendamento não realizado")
+    void avaliacaoDeAgendamentoCanceladoOuExpiradoDeveSerRejeitada() {
+        Agendamento cancelado = agendamentoCom(StatusAgendamento.CANCELADO);
+        Agendamento expirado = agendamentoCom(StatusAgendamento.EXPIRADO);
+
+        assertThatThrownBy(() -> cancelado.avaliar(4, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("atendimentos realizados");
+        assertThatThrownBy(() -> expirado.avaliar(4, APOS_O_TERMINO))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("atendimentos realizados");
+        assertThat(cancelado.getAvaliacao()).isNull();
+        assertThat(expirado.getAvaliacao()).isNull();
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
