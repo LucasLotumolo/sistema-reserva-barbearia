@@ -244,6 +244,18 @@ public class Agendamento {
         return id;
     }
 
+    public ClienteId getClienteId() {
+        return clienteId;
+    }
+
+    public BarbeiroId getBarbeiroId() {
+        return barbeiroId;
+    }
+
+    public Contato getContato() {
+        return contato;
+    }
+
     public int getQuantidadeDeReagendamentos() { return quantidadeDeReagendamentos; }
 
     public Periodo getPeriodo() {
