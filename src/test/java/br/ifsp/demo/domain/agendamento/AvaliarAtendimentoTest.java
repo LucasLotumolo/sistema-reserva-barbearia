@@ -79,6 +79,20 @@ class AvaliarAtendimentoTest {
         assertThat(agendamento.getAvaliacao()).isNull();
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Avaliação antes do término do atendimento")
+    void avaliacaoAntesDoTerminoDoAtendimentoDeveSerRejeitada() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+        LocalDateTime duranteOAtendimento = DATA.atTime(10, 15);
+
+        assertThatThrownBy(() -> agendamento.avaliar(4, duranteOAtendimento))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessageContaining("após o término");
+        assertThat(agendamento.getAvaliacao()).isNull();
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
