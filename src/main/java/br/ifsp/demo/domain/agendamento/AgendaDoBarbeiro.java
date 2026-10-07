@@ -17,6 +17,12 @@ public class AgendaDoBarbeiro {
     private final List<Agendamento> agendamentosDoDia;
 
     public AgendaDoBarbeiro(BarbeiroId barbeiroId, LocalDate data, List<Agendamento> agendamentosDoDia) {
+        for (Agendamento agendamento : agendamentosDoDia) {
+            if (!agendamento.getPeriodo().inicio().toLocalDate().equals(data)) {
+                throw new IllegalArgumentException("A agenda de " + data + " não pode conter agendamento de outra data");
+            }
+        }
+
         this.barbeiroId = barbeiroId;
         this.data = data;
         this.agendamentosDoDia = List.copyOf(agendamentosDoDia);
