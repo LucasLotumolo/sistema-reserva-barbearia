@@ -1,9 +1,11 @@
 package br.ifsp.demo.application;
 
+import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
 
 import java.time.Clock;
+import java.time.LocalDateTime;
 
 public class AvaliarAtendimentoService {
     private final AgendamentoRepository agendamentoRepository;
@@ -15,6 +17,8 @@ public class AvaliarAtendimentoService {
     }
 
     public void avaliar(AgendamentoId agendamentoId, int nota) {
-        throw new UnsupportedOperationException("não implementado");
+        Agendamento agendamento = agendamentoRepository.porId(agendamentoId).orElseThrow();
+        agendamento.avaliar(nota, LocalDateTime.now(clock));
+        agendamentoRepository.salvar(agendamento);
     }
 }
