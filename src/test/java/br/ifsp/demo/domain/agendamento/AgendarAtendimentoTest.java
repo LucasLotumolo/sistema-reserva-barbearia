@@ -840,4 +840,14 @@ class AgendarAtendimentoTest {
                 .isInstanceOf(RegraDeNegocioException.class)
                 .hasMessage("O telefone deve ser válido");
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Telefone nulo")
+    void telefoneNuloDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato("Lucas", null))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O telefone deve ser válido");
+    }
 }
