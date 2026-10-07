@@ -169,6 +169,9 @@ public class Agendamento {
         if (agora.isBefore(periodo.fim())) {
             throw new RegraDeNegocioException("Só é possível avaliar após o término do atendimento");
         }
+        if (avaliacao != null) {
+            throw new RegraDeNegocioException("O atendimento já foi avaliado");
+        }
 
         this.avaliacao = new Avaliacao(nota, agora);
     }
