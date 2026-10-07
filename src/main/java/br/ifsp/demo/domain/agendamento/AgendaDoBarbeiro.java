@@ -25,6 +25,9 @@ public class AgendaDoBarbeiro {
         if (data.isBefore(agora.toLocalDate())) {
             throw new RegraDeNegocioException("Não é possível consultar disponibilidade para datas passadas");
         }
+        if (duracaoEmMinutos <= 0) {
+            throw new RegraDeNegocioException("A duração dos serviços deve ser positiva");
+        }
 
         Periodo expediente = HorarioDeFuncionamento.PADRAO.expedienteDe(data);
         List<Agendamento> ativos = new ArrayList<>();
