@@ -41,6 +41,21 @@ class AvaliarAtendimentoTest {
     @Test
     @Tag("UnitTest")
     @Tag("TDD")
+    @DisplayName("[OK] Avaliação com nota nos limites da escala")
+    void avaliacaoComNotaMinimaOuMaximaDeveSerRegistrada() {
+        Agendamento comNotaMinima = agendamentoCom(StatusAgendamento.CONFIRMADO);
+        Agendamento comNotaMaxima = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        comNotaMinima.avaliar(1, APOS_O_TERMINO);
+        comNotaMaxima.avaliar(5, APOS_O_TERMINO);
+
+        assertThat(comNotaMinima.getAvaliacao().nota()).isEqualTo(1);
+        assertThat(comNotaMaxima.getAvaliacao().nota()).isEqualTo(5);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
     @DisplayName("[ERROR] Nota abaixo do mínimo")
     void notaAbaixoDoMinimoDeveSerRejeitada() {
         Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
