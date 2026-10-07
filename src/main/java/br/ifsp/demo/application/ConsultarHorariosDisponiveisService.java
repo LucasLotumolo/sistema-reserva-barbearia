@@ -1,4 +1,4 @@
-package br.ifsp.demo.service;
+package br.ifsp.demo.application;
 
 import br.ifsp.demo.domain.agendamento.AgendaDoBarbeiro;
 import br.ifsp.demo.domain.agendamento.Agendamento;
