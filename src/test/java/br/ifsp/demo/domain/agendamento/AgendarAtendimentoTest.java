@@ -810,4 +810,14 @@ class AgendarAtendimentoTest {
         assertThat(agendamento.getPeriodo().fim()).isEqualTo(inicioExistente);
         assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.AGENDADO);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Functional")
+    @DisplayName("[ERROR] Telefone com 9 dígitos (abaixo do mínimo)")
+    void telefoneComNoveDigitosDeveSerRejeitado() {
+        assertThatThrownBy(() -> new Contato("Lucas", "169999999"))
+                .isInstanceOf(RegraDeNegocioException.class)
+                .hasMessage("O telefone deve ser válido");
+    }
 }
