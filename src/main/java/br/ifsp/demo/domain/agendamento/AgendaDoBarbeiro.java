@@ -39,7 +39,7 @@ public class AgendaDoBarbeiro {
         ativos.sort(Comparator.comparing(agendamento -> agendamento.getPeriodo().inicio()));
 
         List<Periodo> livres = new ArrayList<>();
-        LocalDateTime inicioDoIntervalo = expediente.inicio();
+        LocalDateTime inicioDoIntervalo = agora.isAfter(expediente.inicio()) ? agora : expediente.inicio();
 
         for (Agendamento agendamento : ativos) {
             Periodo ocupado = agendamento.getPeriodo();
