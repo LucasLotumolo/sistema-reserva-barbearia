@@ -165,6 +165,10 @@ public class Agendamento {
         }
     }
 
+    public void avaliar(int nota, LocalDateTime agora) {
+        throw new UnsupportedOperationException("não implementado");
+    }
+
     public boolean estaAtivo() {
         return status == StatusAgendamento.AGENDADO || status == StatusAgendamento.CONFIRMADO;
     }
@@ -254,6 +258,10 @@ public class Agendamento {
 
     public Contato getContato() {
         return contato;
+    }
+
+    public Avaliacao getAvaliacao() {
+        return avaliacao;
     }
 
     public int getQuantidadeDeReagendamentos() { return quantidadeDeReagendamentos; }
