@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -94,6 +95,38 @@ class ConsultarAgendamentosTest {
         assertThatThrownBy(() -> service.buscarPorId(idInexistente))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class)
                 .hasMessage("Agendamento não encontrado");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("2.4 - [OK] Consulta da ocupação do barbeiro por data")
+    void ocupacaoDoBarbeiroDeveRetornarSomenteOsPeriodosDaData() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        ClienteId clienteId = new ClienteId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDate dia = LocalDate.of(2026, 10, 2);
+        LocalDate outroDia = LocalDate.of(2026, 10, 3);
+
+        Agendamento tarde = agendamentoComInicio(clienteId, barbeiroId, corte, dia.atTime(16, 0));
+        Agendamento manha = agendamentoComInicio(clienteId, barbeiroId, corte, dia.atTime(9, 0));
+        Agendamento emOutroDia = agendamentoComInicio(clienteId, barbeiroId, corte, outroDia.atTime(14, 0));
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porBarbeiroEData(barbeiroId, dia)).thenReturn(List.of(tarde, manha));
+        when(repository.porBarbeiroEData(barbeiroId, outroDia)).thenReturn(List.of(emOutroDia));
+        ConsultarAgendamentosService service = new ConsultarAgendamentosService(repository);
+
+        List<Periodo> resultado = service.horariosOcupados(barbeiroId, dia);
+
+        assertThat(resultado).containsExactly(manha.getPeriodo(), tarde.getPeriodo());
     }
 
     private Agendamento agendamentoComInicio(ClienteId clienteId, BarbeiroId barbeiroId,
