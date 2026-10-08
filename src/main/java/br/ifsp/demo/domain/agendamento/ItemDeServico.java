@@ -23,6 +23,14 @@ public class ItemDeServico {
         return id;
     }
 
+    public ServicoId getServicoId() {
+        return servicoId;
+    }
+
+    public String getNomeDoServico() {
+        return nomeDoServico;
+    }
+
     public Dinheiro getPreco() {
         return preco;
     }
