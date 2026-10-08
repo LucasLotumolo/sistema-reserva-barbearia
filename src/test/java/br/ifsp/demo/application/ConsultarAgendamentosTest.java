@@ -12,6 +12,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -20,9 +21,11 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +78,22 @@ class ConsultarAgendamentosTest {
         List<Agendamento> resultado = service.listarDoCliente(clienteId);
 
         assertThat(resultado).isEmpty();
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("2.3 - [ERROR] Consulta de agendamento inexistente")
+    void consultaDeAgendamentoInexistenteDeveSerRejeitada() {
+        AgendamentoId idInexistente = new AgendamentoId(UUID.randomUUID());
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(idInexistente)).thenReturn(Optional.empty());
+        ConsultarAgendamentosService service = new ConsultarAgendamentosService(repository);
+
+        assertThatThrownBy(() -> service.buscarPorId(idInexistente))
+                .isInstanceOf(AgendamentoNaoEncontradoException.class)
+                .hasMessage("Agendamento não encontrado");
     }
 
     private Agendamento agendamentoComInicio(ClienteId clienteId, BarbeiroId barbeiroId,
