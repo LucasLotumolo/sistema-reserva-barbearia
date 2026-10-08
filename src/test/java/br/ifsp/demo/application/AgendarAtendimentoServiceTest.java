@@ -15,6 +15,7 @@ import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.HorarioIndisponivelException;
+import br.ifsp.demo.exception.ServicoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -113,6 +114,34 @@ class AgendarAtendimentoServiceTest {
                 inicio,
                 List.of(corteId)
         )).isInstanceOf(HorarioIndisponivelException.class);
+
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("S1.3 - [ERROR] Serviço inexistente no catálogo não salva o agendamento")
+    void servicoInexistenteNoCatalogoNaoDeveSalvarOAgendamento() {
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 1, 10, 0);
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 2, 14, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        ServicoId servicoInexistente = new ServicoId(UUID.randomUUID());
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
+        when(catalogo.porId(servicoInexistente)).thenReturn(Optional.empty());
+        Clock clock = Clock.fixed(agora.atZone(FUSO).toInstant(), FUSO);
+        AgendarAtendimentoService service = new AgendarAtendimentoService(repository, catalogo, clock);
+
+        assertThatThrownBy(() -> service.agendar(
+                new ClienteId(UUID.randomUUID()),
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                inicio,
+                List.of(servicoInexistente)
+        )).isInstanceOf(ServicoNaoEncontradoException.class)
+                .hasMessage("Serviço não encontrado");
 
         verify(repository, never()).salvar(any());
     }
