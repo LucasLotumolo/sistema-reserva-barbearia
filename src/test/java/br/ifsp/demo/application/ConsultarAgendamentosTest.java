@@ -129,6 +129,41 @@ class ConsultarAgendamentosTest {
         assertThat(resultado).containsExactly(manha.getPeriodo(), tarde.getPeriodo());
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("2.5 - [OK] Agendamentos encerrados fora da lista de futuros")
+    void listaDeFuturosDeveConterApenasAgendamentosAtivos() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+
+        ClienteId clienteId = new ClienteId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        Agendamento agendado = agendamentoComStatus(clienteId, barbeiroId, corte,
+                LocalDateTime.of(2026, 10, 2, 9, 0), StatusAgendamento.AGENDADO);
+        Agendamento confirmado = agendamentoComStatus(clienteId, barbeiroId, corte,
+                LocalDateTime.of(2026, 10, 2, 11, 0), StatusAgendamento.CONFIRMADO);
+        Agendamento cancelado = agendamentoComStatus(clienteId, barbeiroId, corte,
+                LocalDateTime.of(2026, 10, 2, 14, 0), StatusAgendamento.CANCELADO);
+        Agendamento expirado = agendamentoComStatus(clienteId, barbeiroId, corte,
+                LocalDateTime.of(2026, 10, 2, 16, 0), StatusAgendamento.EXPIRADO);
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porCliente(clienteId))
+                .thenReturn(List.of(expirado, confirmado, cancelado, agendado));
+        ConsultarAgendamentosService service = new ConsultarAgendamentosService(repository);
+
+        List<Agendamento> resultado = service.listarFuturosDoCliente(clienteId);
+
+        assertThat(resultado).containsExactly(agendado, confirmado);
+    }
+
     private Agendamento agendamentoComInicio(ClienteId clienteId, BarbeiroId barbeiroId,
                                              ItemDeServico item, LocalDateTime inicio) {
         return Agendamento.reconstituir(
@@ -139,6 +174,22 @@ class ConsultarAgendamentosTest {
                 new Periodo(inicio, inicio.plusMinutes(item.getDuracaoEmMinutos())),
                 List.of(item),
                 StatusAgendamento.AGENDADO,
+                0,
+                null
+        );
+    }
+
+    private Agendamento agendamentoComStatus(ClienteId clienteId, BarbeiroId barbeiroId,
+                                             ItemDeServico item, LocalDateTime inicio,
+                                             StatusAgendamento status) {
+        return Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                clienteId,
+                barbeiroId,
+                new Contato("Lucas", "16999999999"),
+                new Periodo(inicio, inicio.plusMinutes(item.getDuracaoEmMinutos())),
+                List.of(item),
+                status,
                 0,
                 null
         );
