@@ -4,6 +4,7 @@ import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
 import br.ifsp.demo.domain.comum.ClienteId;
+import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -24,6 +25,7 @@ public class ConsultarAgendamentosService {
     }
 
     public Agendamento buscarPorId(AgendamentoId id) {
-        throw new UnsupportedOperationException("A implementar");
+        return repository.porId(id)
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException("Agendamento não encontrado"));
     }
 }
