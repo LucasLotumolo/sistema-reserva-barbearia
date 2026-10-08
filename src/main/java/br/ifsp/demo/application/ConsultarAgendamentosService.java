@@ -3,6 +3,7 @@ package br.ifsp.demo.application;
 import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
+import br.ifsp.demo.domain.agendamento.StatusAgendamento;
 import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Periodo;
@@ -40,6 +41,13 @@ public class ConsultarAgendamentosService {
     }
 
     public List<Agendamento> listarFuturosDoCliente(ClienteId clienteId) {
-        throw new UnsupportedOperationException("A implementar");
+        return listarDoCliente(clienteId).stream()
+                .filter(this::estaAtivo)
+                .toList();
+    }
+
+    private boolean estaAtivo(Agendamento agendamento) {
+        return agendamento.getStatus() == StatusAgendamento.AGENDADO
+                || agendamento.getStatus() == StatusAgendamento.CONFIRMADO;
     }
 }
