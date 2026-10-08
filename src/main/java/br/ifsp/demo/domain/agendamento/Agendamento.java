@@ -166,6 +166,9 @@ public class Agendamento {
     }
 
     public void avaliar(int nota, LocalDateTime agora) {
+        if (agora == null) {
+            throw new RegraDeNegocioException("O instante da avaliação deve ser informado");
+        }
         if (status != StatusAgendamento.CONFIRMADO) {
             throw new RegraDeNegocioException("Apenas atendimentos realizados podem ser avaliados");
         }
