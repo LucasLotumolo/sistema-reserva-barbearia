@@ -33,6 +33,9 @@ public class ConsultarAgendamentosService {
     }
 
     public List<Periodo> horariosOcupados(BarbeiroId barbeiroId, LocalDate data) {
-        throw new UnsupportedOperationException("A implementar");
+        return repository.porBarbeiroEData(barbeiroId, data).stream()
+                .map(Agendamento::getPeriodo)
+                .sorted(Comparator.comparing(Periodo::inicio))
+                .toList();
     }
 }
