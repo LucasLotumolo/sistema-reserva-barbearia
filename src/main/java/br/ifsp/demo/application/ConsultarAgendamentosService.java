@@ -1,6 +1,7 @@
 package br.ifsp.demo.application;
 
 import br.ifsp.demo.domain.agendamento.Agendamento;
+import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
 import br.ifsp.demo.domain.comum.ClienteId;
 import org.springframework.stereotype.Service;
@@ -20,5 +21,9 @@ public class ConsultarAgendamentosService {
         return repository.porCliente(clienteId).stream()
                 .sorted(Comparator.comparing(agendamento -> agendamento.getPeriodo().inicio()))
                 .toList();
+    }
+
+    public Agendamento buscarPorId(AgendamentoId id) {
+        throw new UnsupportedOperationException("A implementar");
     }
 }
