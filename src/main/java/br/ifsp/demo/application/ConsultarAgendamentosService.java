@@ -38,4 +38,8 @@ public class ConsultarAgendamentosService {
                 .sorted(Comparator.comparing(Periodo::inicio))
                 .toList();
     }
+
+    public List<Agendamento> listarFuturosDoCliente(ClienteId clienteId) {
+        throw new UnsupportedOperationException("A implementar");
+    }
 }
