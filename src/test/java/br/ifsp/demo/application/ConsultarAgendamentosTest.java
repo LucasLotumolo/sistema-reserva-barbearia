@@ -61,6 +61,22 @@ class ConsultarAgendamentosTest {
         assertThat(resultado).containsExactly(outroDia, manha, tarde);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("2.2 - [OK] Cliente sem agendamentos")
+    void clienteSemAgendamentosDeveReceberListaVazia() {
+        ClienteId clienteId = new ClienteId(UUID.randomUUID());
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porCliente(clienteId)).thenReturn(List.of());
+        ConsultarAgendamentosService service = new ConsultarAgendamentosService(repository);
+
+        List<Agendamento> resultado = service.listarDoCliente(clienteId);
+
+        assertThat(resultado).isEmpty();
+    }
+
     private Agendamento agendamentoComInicio(ClienteId clienteId, BarbeiroId barbeiroId,
                                              ItemDeServico item, LocalDateTime inicio) {
         return Agendamento.reconstituir(
