@@ -5,6 +5,7 @@ import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
 import br.ifsp.demo.domain.comum.ClienteId;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -16,6 +17,8 @@ public class ConsultarAgendamentosService {
     }
 
     public List<Agendamento> listarDoCliente(ClienteId clienteId) {
-        throw new UnsupportedOperationException("A implementar");
+        return repository.porCliente(clienteId).stream()
+                .sorted(Comparator.comparing(agendamento -> agendamento.getPeriodo().inicio()))
+                .toList();
     }
 }
