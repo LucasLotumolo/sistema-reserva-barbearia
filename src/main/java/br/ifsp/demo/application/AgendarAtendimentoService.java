@@ -11,6 +11,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.ServicoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -35,7 +36,8 @@ public class AgendarAtendimentoService {
                                LocalDateTime inicio, List<ServicoId> servicos) {
         List<ItemDeServico> itens = new ArrayList<>();
         for (ServicoId servicoId : servicos) {
-            Servico servico = catalogo.porId(servicoId).orElseThrow();
+            Servico servico = catalogo.porId(servicoId)
+                    .orElseThrow(() -> new ServicoNaoEncontradoException("Serviço não encontrado"));
             itens.add(new ItemDeServico(new ItemId(UUID.randomUUID()), servico.id(),
                     servico.nome(), servico.preco(), servico.duracaoEmMinutos()));
         }
