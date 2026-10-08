@@ -3,10 +3,13 @@ package br.ifsp.demo.application;
 import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
+import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.ClienteId;
+import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
@@ -27,5 +30,9 @@ public class ConsultarAgendamentosService {
     public Agendamento buscarPorId(AgendamentoId id) {
         return repository.porId(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException("Agendamento não encontrado"));
+    }
+
+    public List<Periodo> horariosOcupados(BarbeiroId barbeiroId, LocalDate data) {
+        throw new UnsupportedOperationException("A implementar");
     }
 }
