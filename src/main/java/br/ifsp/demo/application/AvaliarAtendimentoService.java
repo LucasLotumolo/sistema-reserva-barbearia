@@ -4,10 +4,12 @@ import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.AgendamentoRepository;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
+import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 
+@Service
 public class AvaliarAtendimentoService {
     private final AgendamentoRepository agendamentoRepository;
     private final Clock clock;
