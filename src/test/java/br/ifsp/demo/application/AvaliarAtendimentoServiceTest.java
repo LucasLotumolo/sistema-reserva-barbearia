@@ -12,6 +12,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -63,7 +64,7 @@ class AvaliarAtendimentoServiceTest {
         AgendamentoId inexistente = new AgendamentoId(UUID.randomUUID());
 
         assertThatThrownBy(() -> service.avaliar(inexistente, 5))
-                .isInstanceOf(RegraDeNegocioException.class)
+                .isInstanceOf(AgendamentoNaoEncontradoException.class)
                 .hasMessageContaining("Agendamento não encontrado");
     }
 
