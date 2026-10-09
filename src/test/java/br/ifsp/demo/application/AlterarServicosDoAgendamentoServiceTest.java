@@ -164,5 +164,24 @@ class AlterarServicosDoAgendamentoServiceTest {
         verify(repository).salvar(agendamento);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Remover serviço de agendamento inexistente é rejeitado")
+    void removerServicoDeAgendamentoInexistenteDeveSerRejeitado() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        ItemId itemId = new ItemId(UUID.randomUUID());
 
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.empty());
+        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
+
+        AlterarServicosDoAgendamentoService service =
+                new AlterarServicosDoAgendamentoService(repository, catalogo);
+
+        assertThatThrownBy(() -> service.removerServico(id, itemId))
+                .isInstanceOf(AgendamentoNaoEncontradoException.class);
+
+        verify(repository, never()).salvar(any());
+    }
 }
