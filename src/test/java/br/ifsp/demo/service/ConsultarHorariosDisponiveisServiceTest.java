@@ -52,7 +52,7 @@ class ConsultarHorariosDisponiveisServiceTest {
     @DisplayName("[OK] Consulta com agenda parcialmente ocupada considera a soma das durações dos serviços")
     void consultaDeveUsarASomaDasDuracoesDosServicosDesejados() {
         Agendamento ocupado = agendamentoDas(10, 0, 11, 0);
-        AgendamentoRepository repositorio = (barbeiro, data) -> List.of(ocupado);
+        AgendamentoRepository repositorio = new AgendamentoRepositoryEmMemoria(ocupado);
         ConsultarHorariosDisponiveisService service =
                 new ConsultarHorariosDisponiveisService(repositorio, CATALOGO, RELOGIO);
 
@@ -99,7 +99,7 @@ class ConsultarHorariosDisponiveisServiceTest {
     }
 
     private static ConsultarHorariosDisponiveisService serviceComAgenda(Agendamento... agendamentos) {
-        AgendamentoRepository repositorio = (barbeiro, data) -> List.of(agendamentos);
+        AgendamentoRepository repositorio = new AgendamentoRepositoryEmMemoria(agendamentos);
         return new ConsultarHorariosDisponiveisService(repositorio, CATALOGO, RELOGIO);
     }
 
