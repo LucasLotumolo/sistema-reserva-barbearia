@@ -200,6 +200,10 @@ public class Agendamento {
         }
     }
 
+    public boolean estaAtivo() {
+        return status == StatusAgendamento.AGENDADO || status == StatusAgendamento.CONFIRMADO;
+    }
+
     public int duracaoTotalEmMinutos() {
         return somarDuracoes(itens);
     }
