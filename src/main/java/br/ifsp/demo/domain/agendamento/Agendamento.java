@@ -10,14 +10,15 @@ import br.ifsp.demo.exception.RegraDeNegocioException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.time.Duration;
 import java.time.LocalTime;
 
 public class Agendamento {
     private static final int MAXIMO_DE_ITENS = 5;
     private static final int DURACAO_MAXIMA_EM_MINUTOS = 240;
+    private static final int ANTECEDENCIA_MINIMA_AGENDAMENTO_EM_MINUTOS = 60;
     private static final int ANTECEDENCIA_MINIMA_REAGENDAMENTO_EM_MINUTOS = 120;
     private static final int MAXIMO_DE_REAGENDAMENTOS = 3;
     private static final LocalTime HORARIO_ABERTURA = LocalTime.of(9, 0);
@@ -47,6 +48,40 @@ public class Agendamento {
         this.status = status;
         this.quantidadeDeReagendamentos = quantidadeDeReagendamentos;
         this.avaliacao = avaliacao;
+    }
+
+    public static Agendamento criar(ClienteId clienteId, BarbeiroId barbeiroId, Contato contato,
+                                    LocalDateTime inicio, List<ItemDeServico> itens,
+                                    AgendaDoBarbeiro agenda, LocalDateTime agora) {
+        if (itens.isEmpty()) {
+            throw new RegraDeNegocioException("O agendamento deve conter ao menos um serviço");
+        }
+        if (itens.size() > MAXIMO_DE_ITENS) {
+            throw new RegraDeNegocioException("Limite de serviços por agendamento atingido");
+        }
+        validarDuracaoMaxima(somarDuracoes(itens));
+
+        if (!inicio.isAfter(agora)) {
+            throw new RegraDeNegocioException("Não é possível agendar em horário passado");
+        }
+
+        Duration tempoAteInicio = Duration.between(agora, inicio);
+        if (tempoAteInicio.compareTo(Duration.ofMinutes(ANTECEDENCIA_MINIMA_AGENDAMENTO_EM_MINUTOS)) < 0) {
+            throw new RegraDeNegocioException("Agendamento exige no mínimo "
+                    + ANTECEDENCIA_MINIMA_AGENDAMENTO_EM_MINUTOS + " minutos de antecedência");
+        }
+
+        Periodo periodo = new Periodo(inicio, inicio.plusMinutes(somarDuracoes(itens)));
+        validarExpediente(periodo);
+
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+
+        if (!agenda.estaLivre(periodo, id)) {
+            throw new HorarioIndisponivelException("Horário indisponível para o barbeiro");
+        }
+
+        return new Agendamento(id, clienteId, barbeiroId, contato,
+                periodo, itens, StatusAgendamento.AGENDADO, 0, null);
     }
 
     public static Agendamento reconstituir(AgendamentoId id, ClienteId clienteId, BarbeiroId barbeiroId,
@@ -187,6 +222,10 @@ public class Agendamento {
     }
 
     public int duracaoTotalEmMinutos() {
+        return somarDuracoes(itens);
+    }
+
+    private static int somarDuracoes(List<ItemDeServico> itens) {
         int total = 0;
         for (ItemDeServico item : itens) {
             total = total + item.getDuracaoEmMinutos();
@@ -214,13 +253,13 @@ public class Agendamento {
         }
     }
 
-    private void validarDuracaoMaxima(int duracaoEmMinutos) {
+    private static void validarDuracaoMaxima(int duracaoEmMinutos) {
         if (duracaoEmMinutos > DURACAO_MAXIMA_EM_MINUTOS) {
             throw new RegraDeNegocioException("O agendamento ultrapassaria a duração máxima permitida");
         }
     }
 
-    private void validarExpediente(Periodo periodo) {
+    private static void validarExpediente(Periodo periodo) {
         LocalTime inicio = periodo.inicio().toLocalTime();
         LocalTime fim = periodo.fim().toLocalTime();
         if (inicio.isBefore(HORARIO_ABERTURA) || fim.isAfter(HORARIO_FECHAMENTO)) {
@@ -284,5 +323,4 @@ public class Agendamento {
     }
 
     public StatusAgendamento getStatus() { return status; }
-
 }

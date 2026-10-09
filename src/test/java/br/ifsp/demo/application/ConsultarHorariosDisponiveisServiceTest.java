@@ -15,6 +15,7 @@ import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.RegraDeNegocioException;
+import br.ifsp.demo.exception.ServicoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ class ConsultarHorariosDisponiveisServiceTest {
         ServicoId inexistente = new ServicoId(UUID.randomUUID());
 
         assertThatThrownBy(() -> service.consultar(BARBEIRO, DATA, List.of(CORTE.id(), inexistente)))
-                .isInstanceOf(RegraDeNegocioException.class)
+                .isInstanceOf(ServicoNaoEncontradoException.class)
                 .hasMessageContaining("Serviço não encontrado");
     }
 
