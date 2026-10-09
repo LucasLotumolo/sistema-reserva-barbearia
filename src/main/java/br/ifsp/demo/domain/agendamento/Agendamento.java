@@ -200,6 +200,23 @@ public class Agendamento {
         }
     }
 
+    public void avaliar(int nota, LocalDateTime agora) {
+        if (agora == null) {
+            throw new RegraDeNegocioException("O instante da avaliação deve ser informado");
+        }
+        if (status != StatusAgendamento.CONFIRMADO) {
+            throw new RegraDeNegocioException("Apenas atendimentos realizados podem ser avaliados");
+        }
+        if (agora.isBefore(periodo.fim())) {
+            throw new RegraDeNegocioException("Só é possível avaliar após o término do atendimento");
+        }
+        if (avaliacao != null) {
+            throw new RegraDeNegocioException("O atendimento já foi avaliado");
+        }
+
+        this.avaliacao = new Avaliacao(nota, agora);
+    }
+
     public boolean estaAtivo() {
         return status == StatusAgendamento.AGENDADO || status == StatusAgendamento.CONFIRMADO;
     }
