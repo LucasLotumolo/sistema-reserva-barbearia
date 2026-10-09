@@ -131,4 +131,29 @@ class ReagendarAtendimentoServiceTest {
 
         verify(repository, never()).salvar(any());
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Reagendamento deve consultar a agenda da nova data informada")
+    void reagendamentoDeveConsultarAgendaDaNovaData() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime inicioOriginal = AGORA.plusHours(5);
+        Agendamento agendamento = agendamentoAtivo(id, barbeiroId, inicioOriginal);
+
+        LocalDateTime novoInicio = AGORA.plusDays(2).withHour(14).withMinute(0);
+        LocalDate novaData = novoInicio.toLocalDate();
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+        when(repository.porBarbeiroEData(eq(barbeiroId), eq(novaData))).thenReturn(List.of());
+
+        ReagendarAtendimentoService service = new ReagendarAtendimentoService(repository, RELOGIO);
+
+        service.reagendar(id, novoInicio);
+
+        verify(repository).porBarbeiroEData(barbeiroId, novaData);
+        verify(repository, never()).porBarbeiroEData(barbeiroId, inicioOriginal.toLocalDate());
+    }
 }
