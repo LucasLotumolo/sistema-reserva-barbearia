@@ -13,6 +13,8 @@ import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
+import br.ifsp.demo.exception.HorarioIndisponivelException;
+import static org.mockito.Mockito.never;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -101,5 +103,32 @@ class ReagendarAtendimentoServiceTest {
 
         assertThatThrownBy(() -> service.reagendar(id, AGORA.plusDays(1)))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Reagendamento que viola regra de negocio nao deve salvar o agendamento")
+    void reagendamentoQueViolaRegraDeNegocioNaoDeveSalvarAgendamento() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime inicioOriginal = AGORA.plusHours(5);
+        Agendamento agendamento = agendamentoAtivo(id, barbeiroId, inicioOriginal);
+
+        LocalDateTime novoInicio = AGORA.plusDays(1).withHour(11).withMinute(0);
+        LocalDate novaData = novoInicio.toLocalDate();
+
+        Agendamento conflitante = agendamentoAtivo(new AgendamentoId(UUID.randomUUID()), barbeiroId, novoInicio);
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+        when(repository.porBarbeiroEData(eq(barbeiroId), eq(novaData))).thenReturn(List.of(conflitante));
+
+        ReagendarAtendimentoService service = new ReagendarAtendimentoService(repository, RELOGIO);
+
+        assertThatThrownBy(() -> service.reagendar(id, novoInicio))
+                .isInstanceOf(HorarioIndisponivelException.class);
+
+        verify(repository, never()).salvar(any());
     }
 }
