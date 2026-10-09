@@ -1,7 +1,9 @@
 package br.ifsp.demo.controller;
 
 import br.ifsp.demo.application.ConsultarAgendamentosService;
+import br.ifsp.demo.application.ConsultarHorariosDisponiveisService;
 import br.ifsp.demo.domain.comum.BarbeiroId;
+import br.ifsp.demo.domain.servico.ServicoId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,9 +24,12 @@ import java.util.UUID;
 public class AgendaDoBarbeiroController {
 
     private final ConsultarAgendamentosService consultarAgendamentosService;
+    private final ConsultarHorariosDisponiveisService consultarHorariosDisponiveisService;
 
-    public AgendaDoBarbeiroController(ConsultarAgendamentosService consultarAgendamentosService) {
+    public AgendaDoBarbeiroController(ConsultarAgendamentosService consultarAgendamentosService,
+                                      ConsultarHorariosDisponiveisService consultarHorariosDisponiveisService) {
         this.consultarAgendamentosService = consultarAgendamentosService;
+        this.consultarHorariosDisponiveisService = consultarHorariosDisponiveisService;
     }
 
     @Operation(summary = "Lista os períodos ocupados do barbeiro na data informada.")
@@ -37,5 +42,19 @@ public class AgendaDoBarbeiroController {
                 .map(PeriodoResponse::de)
                 .toList();
         return ResponseEntity.ok(ocupados);
+    }
+
+    @Operation(summary = "Lista os intervalos livres do barbeiro na data que comportam os serviços informados.")
+    @GetMapping("/horarios-disponiveis")
+    public ResponseEntity<List<PeriodoResponse>> horariosDisponiveis(
+            @PathVariable UUID barbeiroId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam List<UUID> servicos) {
+        List<ServicoId> servicoIds = servicos.stream().map(ServicoId::new).toList();
+        List<PeriodoResponse> disponiveis = consultarHorariosDisponiveisService
+                .consultar(new BarbeiroId(barbeiroId), data, servicoIds).stream()
+                .map(PeriodoResponse::de)
+                .toList();
+        return ResponseEntity.ok(disponiveis);
     }
 }
