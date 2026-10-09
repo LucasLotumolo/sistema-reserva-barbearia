@@ -14,6 +14,7 @@ import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,5 +86,25 @@ class AlterarServicosDoAgendamentoServiceTest {
         verify(repository).salvar(agendamento);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Adicionar serviço em agendamento inexistente é rejeitado")
+    void adicionarServicoEmAgendamentoInexistenteDeveSerRejeitado() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        ServicoId servicoId = new ServicoId(UUID.randomUUID());
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.empty());
+        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
+
+        AlterarServicosDoAgendamentoService service =
+                new AlterarServicosDoAgendamentoService(repository, catalogo);
+
+        assertThatThrownBy(() -> service.adicionarServico(id, servicoId))
+                .isInstanceOf(AgendamentoNaoEncontradoException.class);
+
+        verify(repository, never()).salvar(any());
+    }
 
 }
