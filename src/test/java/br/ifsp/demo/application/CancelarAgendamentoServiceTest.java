@@ -13,6 +13,7 @@ import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,5 +93,25 @@ class CancelarAgendamentoServiceTest {
 
         assertThatThrownBy(() -> service.cancelar(id))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Cancelamento de agendamento já iniciado não deve salvar")
+    void cancelamentoDeAgendamentoJaIniciadoNaoDeveSalvar() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        LocalDateTime inicio = AGORA.minusMinutes(10);
+        Agendamento agendamento = agendamentoCom(id, inicio, StatusAgendamento.AGENDADO);
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+
+        CancelarAgendamentoService service = new CancelarAgendamentoService(repository, RELOGIO);
+
+        assertThatThrownBy(() -> service.cancelar(id))
+                .isInstanceOf(RegraDeNegocioException.class);
+
+        verify(repository, never()).salvar(any());
     }
 }
