@@ -12,6 +12,7 @@ import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.comum.Dinheiro;
 import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
+import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,5 +75,20 @@ class CancelarAgendamentoServiceTest {
         service.cancelar(id);
 
         verify(repository).salvar(agendamento);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Cancelamento de agendamento inexistente deve ser rejeitado")
+    void cancelamentoDeAgendamentoInexistenteDeveSerRejeitado() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.empty());
+
+        CancelarAgendamentoService service = new CancelarAgendamentoService(repository, RELOGIO);
+
+        assertThatThrownBy(() -> service.cancelar(id))
+                .isInstanceOf(AgendamentoNaoEncontradoException.class);
     }
 }
