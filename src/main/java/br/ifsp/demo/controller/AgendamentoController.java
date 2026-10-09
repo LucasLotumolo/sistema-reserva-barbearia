@@ -1,6 +1,7 @@
 package br.ifsp.demo.controller;
 
 import br.ifsp.demo.application.AgendarAtendimentoService;
+import br.ifsp.demo.application.ConfirmarPresencaService;
 import br.ifsp.demo.application.ConsultarAgendamentosService;
 import br.ifsp.demo.application.ReagendarAtendimentoService;
 import br.ifsp.demo.domain.agendamento.Agendamento;
@@ -35,15 +36,18 @@ public class AgendamentoController {
     private final AgendarAtendimentoService agendarAtendimentoService;
     private final ConsultarAgendamentosService consultarAgendamentosService;
     private final ReagendarAtendimentoService reagendarAtendimentoService;
+    private final ConfirmarPresencaService confirmarPresencaService;
 
     public AgendamentoController(AuthenticationInfoService authService,
                                  AgendarAtendimentoService agendarAtendimentoService,
                                  ConsultarAgendamentosService consultarAgendamentosService,
-                                 ReagendarAtendimentoService reagendarAtendimentoService) {
+                                 ReagendarAtendimentoService reagendarAtendimentoService,
+                                 ConfirmarPresencaService confirmarPresencaService) {
         this.authService = authService;
         this.agendarAtendimentoService = agendarAtendimentoService;
         this.consultarAgendamentosService = consultarAgendamentosService;
         this.reagendarAtendimentoService = reagendarAtendimentoService;
+        this.confirmarPresencaService = confirmarPresencaService;
     }
 
     @Operation(summary = "Agenda um atendimento para o cliente autenticado.")
@@ -83,6 +87,14 @@ public class AgendamentoController {
         Agendamento agendamento = buscarDoClienteAutenticado(id);
         Agendamento reagendado = reagendarAtendimentoService.reagendar(agendamento.getId(), request.novoInicio());
         return ResponseEntity.ok(AgendamentoResponse.de(reagendado));
+    }
+
+    @Operation(summary = "Confirma a presença do cliente autenticado no atendimento.")
+    @PostMapping("/{id}/confirmacao")
+    public ResponseEntity<Void> confirmarPresenca(@PathVariable UUID id) {
+        Agendamento agendamento = buscarDoClienteAutenticado(id);
+        confirmarPresencaService.confirmar(agendamento.getId());
+        return ResponseEntity.noContent().build();
     }
 
     // Os serviços buscam só pelo id; sem esta checagem um cliente poderia ler ou alterar a reserva de outro.
