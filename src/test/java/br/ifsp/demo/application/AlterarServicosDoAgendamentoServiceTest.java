@@ -15,6 +15,7 @@ import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
+import br.ifsp.demo.exception.RegraDeNegocioException;
 import br.ifsp.demo.exception.ServicoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -181,6 +182,31 @@ class AlterarServicosDoAgendamentoServiceTest {
 
         assertThatThrownBy(() -> service.removerServico(id, itemId))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class);
+
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Remoção que viola regra de negócio não salva o agendamento")
+    void remocaoQueVeolaRegraDeNegocioNaoDeveSalvar() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        Agendamento agendamento = agendamentoComUmServico(id, barbeiroId, inicio);
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
+
+        AlterarServicosDoAgendamentoService service =
+                new AlterarServicosDoAgendamentoService(repository, catalogo);
+
+        ItemId idDoUnicoItem = agendamento.getItens().get(0).getId();
+
+        assertThatThrownBy(() -> service.removerServico(id, idDoUnicoItem))
+                .isInstanceOf(RegraDeNegocioException.class);
 
         verify(repository, never()).salvar(any());
     }
