@@ -9,12 +9,14 @@ import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.ServicoNaoEncontradoException;
+import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Service
 public class ConsultarHorariosDisponiveisService {
     private final AgendamentoRepository agendamentoRepository;
     private final CatalogoDeServicos catalogoDeServicos;
