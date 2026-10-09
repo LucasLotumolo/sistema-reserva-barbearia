@@ -15,6 +15,7 @@ import br.ifsp.demo.domain.servico.CatalogoDeServicos;
 import br.ifsp.demo.domain.servico.Servico;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
+import br.ifsp.demo.exception.ServicoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -107,4 +108,28 @@ class AlterarServicosDoAgendamentoServiceTest {
         verify(repository, never()).salvar(any());
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[ERROR] Adicionar serviço inexistente no catálogo é rejeitado")
+    void adicionarServicoInexistenteNoCatalogoDeveSerRejeitado() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        Agendamento agendamento = agendamentoComUmServico(id, barbeiroId, inicio);
+        ServicoId servicoInexistente = new ServicoId(UUID.randomUUID());
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
+        when(catalogo.porId(servicoInexistente)).thenReturn(Optional.empty());
+
+        AlterarServicosDoAgendamentoService service =
+                new AlterarServicosDoAgendamentoService(repository, catalogo);
+
+        assertThatThrownBy(() -> service.adicionarServico(id, servicoInexistente))
+                .isInstanceOf(ServicoNaoEncontradoException.class);
+
+        verify(repository, never()).salvar(any());
+    }
 }
