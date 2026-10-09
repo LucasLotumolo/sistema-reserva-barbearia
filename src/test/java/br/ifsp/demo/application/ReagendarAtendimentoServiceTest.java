@@ -156,4 +156,29 @@ class ReagendarAtendimentoServiceTest {
         verify(repository).porBarbeiroEData(barbeiroId, novaData);
         verify(repository, never()).porBarbeiroEData(barbeiroId, inicioOriginal.toLocalDate());
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Reagendamento dentro do mesmo dia nao deve conflitar com o proprio agendamento")
+    void reagendamentoNoMesmoDiaNaoDeveConflitarComProprioAgendamento() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime inicioOriginal = AGORA.plusHours(5);
+        Agendamento agendamento = agendamentoAtivo(id, barbeiroId, inicioOriginal);
+
+        LocalDateTime novoInicio = inicioOriginal.plusHours(2);
+        LocalDate mesmaData = novoInicio.toLocalDate();
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+        when(repository.porBarbeiroEData(eq(barbeiroId), eq(mesmaData))).thenReturn(List.of(agendamento));
+
+        ReagendarAtendimentoService service = new ReagendarAtendimentoService(repository, RELOGIO);
+
+        Agendamento resultado = service.reagendar(id, novoInicio);
+
+        assertThat(resultado.getPeriodo().inicio()).isEqualTo(novoInicio);
+        verify(repository).salvar(agendamento);
+    }
 }
