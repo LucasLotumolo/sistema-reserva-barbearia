@@ -2,6 +2,7 @@ package br.ifsp.demo.controller;
 
 import br.ifsp.demo.application.AgendarAtendimentoService;
 import br.ifsp.demo.application.ConsultarAgendamentosService;
+import br.ifsp.demo.application.ReagendarAtendimentoService;
 import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.Contato;
@@ -33,13 +34,16 @@ public class AgendamentoController {
     private final AuthenticationInfoService authService;
     private final AgendarAtendimentoService agendarAtendimentoService;
     private final ConsultarAgendamentosService consultarAgendamentosService;
+    private final ReagendarAtendimentoService reagendarAtendimentoService;
 
     public AgendamentoController(AuthenticationInfoService authService,
                                  AgendarAtendimentoService agendarAtendimentoService,
-                                 ConsultarAgendamentosService consultarAgendamentosService) {
+                                 ConsultarAgendamentosService consultarAgendamentosService,
+                                 ReagendarAtendimentoService reagendarAtendimentoService) {
         this.authService = authService;
         this.agendarAtendimentoService = agendarAtendimentoService;
         this.consultarAgendamentosService = consultarAgendamentosService;
+        this.reagendarAtendimentoService = reagendarAtendimentoService;
     }
 
     @Operation(summary = "Agenda um atendimento para o cliente autenticado.")
@@ -70,6 +74,15 @@ public class AgendamentoController {
     @GetMapping("/{id}")
     public ResponseEntity<AgendamentoResponse> buscar(@PathVariable UUID id) {
         return ResponseEntity.ok(AgendamentoResponse.de(buscarDoClienteAutenticado(id)));
+    }
+
+    @Operation(summary = "Reagenda um atendimento do cliente autenticado para um novo início.")
+    @PostMapping("/{id}/reagendamento")
+    public ResponseEntity<AgendamentoResponse> reagendar(@PathVariable UUID id,
+                                                         @RequestBody ReagendarAtendimentoRequest request) {
+        Agendamento agendamento = buscarDoClienteAutenticado(id);
+        Agendamento reagendado = reagendarAtendimentoService.reagendar(agendamento.getId(), request.novoInicio());
+        return ResponseEntity.ok(AgendamentoResponse.de(reagendado));
     }
 
     // Os serviços buscam só pelo id; sem esta checagem um cliente poderia ler ou alterar a reserva de outro.
