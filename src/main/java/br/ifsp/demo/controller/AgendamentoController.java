@@ -1,6 +1,7 @@
 package br.ifsp.demo.controller;
 
 import br.ifsp.demo.application.AgendarAtendimentoService;
+import br.ifsp.demo.application.AvaliarAtendimentoService;
 import br.ifsp.demo.application.ConfirmarPresencaService;
 import br.ifsp.demo.application.ConsultarAgendamentosService;
 import br.ifsp.demo.application.ReagendarAtendimentoService;
@@ -37,17 +38,20 @@ public class AgendamentoController {
     private final ConsultarAgendamentosService consultarAgendamentosService;
     private final ReagendarAtendimentoService reagendarAtendimentoService;
     private final ConfirmarPresencaService confirmarPresencaService;
+    private final AvaliarAtendimentoService avaliarAtendimentoService;
 
     public AgendamentoController(AuthenticationInfoService authService,
                                  AgendarAtendimentoService agendarAtendimentoService,
                                  ConsultarAgendamentosService consultarAgendamentosService,
                                  ReagendarAtendimentoService reagendarAtendimentoService,
-                                 ConfirmarPresencaService confirmarPresencaService) {
+                                 ConfirmarPresencaService confirmarPresencaService,
+                                 AvaliarAtendimentoService avaliarAtendimentoService) {
         this.authService = authService;
         this.agendarAtendimentoService = agendarAtendimentoService;
         this.consultarAgendamentosService = consultarAgendamentosService;
         this.reagendarAtendimentoService = reagendarAtendimentoService;
         this.confirmarPresencaService = confirmarPresencaService;
+        this.avaliarAtendimentoService = avaliarAtendimentoService;
     }
 
     @Operation(summary = "Agenda um atendimento para o cliente autenticado.")
@@ -95,6 +99,14 @@ public class AgendamentoController {
         Agendamento agendamento = buscarDoClienteAutenticado(id);
         confirmarPresencaService.confirmar(agendamento.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Registra a avaliação do cliente autenticado para um atendimento realizado.")
+    @PostMapping("/{id}/avaliacao")
+    public ResponseEntity<Void> avaliar(@PathVariable UUID id, @RequestBody AvaliarAtendimentoRequest request) {
+        Agendamento agendamento = buscarDoClienteAutenticado(id);
+        avaliarAtendimentoService.avaliar(agendamento.getId(), request.nota());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // Os serviços buscam só pelo id; sem esta checagem um cliente poderia ler ou alterar a reserva de outro.
