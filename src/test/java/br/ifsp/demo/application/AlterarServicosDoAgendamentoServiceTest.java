@@ -132,4 +132,37 @@ class AlterarServicosDoAgendamentoServiceTest {
 
         verify(repository, never()).salvar(any());
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("TDD")
+    @DisplayName("[OK] Remover serviço com sucesso salva o agendamento")
+    void removerServicoComSucessoDeveSalvarOAgendamento() {
+        AgendamentoId id = new AgendamentoId(UUID.randomUUID());
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                id, new ClienteId(UUID.randomUUID()), new BarbeiroId(UUID.randomUUID()),
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(50)),
+                List.of(corte, barba), StatusAgendamento.AGENDADO, 0, null);
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(id)).thenReturn(Optional.of(agendamento));
+        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
+
+        AlterarServicosDoAgendamentoService service =
+                new AlterarServicosDoAgendamentoService(repository, catalogo);
+
+        service.removerServico(id, barba.getId());
+
+        assertThat(agendamento.getItens()).hasSize(1);
+        verify(repository).salvar(agendamento);
+    }
+
+
 }
