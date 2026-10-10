@@ -14,9 +14,14 @@ import br.ifsp.demo.domain.comum.Periodo;
 import br.ifsp.demo.domain.servico.ServicoId;
 import br.ifsp.demo.exception.AgendamentoNaoEncontradoException;
 import br.ifsp.demo.exception.RegraDeNegocioException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -28,17 +33,23 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("US-04 — Serviço de cancelamento de agendamento")
 class CancelarAgendamentoServiceTest {
 
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
     private static final LocalDateTime AGORA = LocalDateTime.of(2026, 10, 8, 10, 0);
-    private static final Clock RELOGIO = Clock.fixed(AGORA.atZone(FUSO).toInstant(), FUSO);
+
+    @Mock
+    private AgendamentoRepository repository;
+
+    @Mock
+    private Clock relogio;
+
+    @InjectMocks
+    private CancelarAgendamentoService service;
 
     private Agendamento agendamentoCom(AgendamentoId id, LocalDateTime inicio, StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
@@ -66,14 +77,13 @@ class CancelarAgendamentoServiceTest {
     @Tag("TDD")
     @DisplayName("[OK] Cancelamento com sucesso deve salvar o agendamento")
     void cancelamentoComSucessoDeveSalvarAgendamento() {
+        when(relogio.instant()).thenReturn(AGORA.atZone(FUSO).toInstant());
+        when(relogio.getZone()).thenReturn(FUSO);
+
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
         LocalDateTime inicio = AGORA.plusHours(23);
         Agendamento agendamento = agendamentoCom(id, inicio, StatusAgendamento.AGENDADO);
-
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.of(agendamento));
-
-        CancelarAgendamentoService service = new CancelarAgendamentoService(repository, RELOGIO);
 
         service.cancelar(id);
 
@@ -86,10 +96,7 @@ class CancelarAgendamentoServiceTest {
     @DisplayName("[ERROR] Cancelamento de agendamento inexistente deve ser rejeitado")
     void cancelamentoDeAgendamentoInexistenteDeveSerRejeitado() {
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.empty());
-
-        CancelarAgendamentoService service = new CancelarAgendamentoService(repository, RELOGIO);
 
         assertThatThrownBy(() -> service.cancelar(id))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class);
@@ -100,14 +107,13 @@ class CancelarAgendamentoServiceTest {
     @Tag("TDD")
     @DisplayName("[ERROR] Cancelamento de agendamento já iniciado não deve salvar")
     void cancelamentoDeAgendamentoJaIniciadoNaoDeveSalvar() {
+        when(relogio.instant()).thenReturn(AGORA.atZone(FUSO).toInstant());
+        when(relogio.getZone()).thenReturn(FUSO);
+
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
         LocalDateTime inicio = AGORA.minusMinutes(10);
         Agendamento agendamento = agendamentoCom(id, inicio, StatusAgendamento.AGENDADO);
-
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.of(agendamento));
-
-        CancelarAgendamentoService service = new CancelarAgendamentoService(repository, RELOGIO);
 
         assertThatThrownBy(() -> service.cancelar(id))
                 .isInstanceOf(RegraDeNegocioException.class);
