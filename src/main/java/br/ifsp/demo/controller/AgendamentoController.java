@@ -3,6 +3,7 @@ package br.ifsp.demo.controller;
 import br.ifsp.demo.application.AgendarAtendimentoService;
 import br.ifsp.demo.application.AlterarServicosDoAgendamentoService;
 import br.ifsp.demo.application.AvaliarAtendimentoService;
+import br.ifsp.demo.application.CancelarAgendamentoService;
 import br.ifsp.demo.application.ConfirmarPresencaService;
 import br.ifsp.demo.application.ConsultarAgendamentosService;
 import br.ifsp.demo.application.ReagendarAtendimentoService;
@@ -43,6 +44,7 @@ public class AgendamentoController {
     private final ConfirmarPresencaService confirmarPresencaService;
     private final AvaliarAtendimentoService avaliarAtendimentoService;
     private final AlterarServicosDoAgendamentoService alterarServicosDoAgendamentoService;
+    private final CancelarAgendamentoService cancelarAgendamentoService;
 
     public AgendamentoController(AuthenticationInfoService authService,
                                  AgendarAtendimentoService agendarAtendimentoService,
@@ -50,7 +52,8 @@ public class AgendamentoController {
                                  ReagendarAtendimentoService reagendarAtendimentoService,
                                  ConfirmarPresencaService confirmarPresencaService,
                                  AvaliarAtendimentoService avaliarAtendimentoService,
-                                 AlterarServicosDoAgendamentoService alterarServicosDoAgendamentoService) {
+                                 AlterarServicosDoAgendamentoService alterarServicosDoAgendamentoService,
+                                 CancelarAgendamentoService cancelarAgendamentoService) {
         this.authService = authService;
         this.agendarAtendimentoService = agendarAtendimentoService;
         this.consultarAgendamentosService = consultarAgendamentosService;
@@ -58,6 +61,7 @@ public class AgendamentoController {
         this.confirmarPresencaService = confirmarPresencaService;
         this.avaliarAtendimentoService = avaliarAtendimentoService;
         this.alterarServicosDoAgendamentoService = alterarServicosDoAgendamentoService;
+        this.cancelarAgendamentoService = cancelarAgendamentoService;
     }
 
     @Operation(summary = "Agenda um atendimento para o cliente autenticado.")
@@ -130,6 +134,14 @@ public class AgendamentoController {
         Agendamento agendamento = buscarDoClienteAutenticado(id);
         alterarServicosDoAgendamentoService.removerServico(agendamento.getId(), new ItemId(itemId));
         return ResponseEntity.ok(AgendamentoResponse.de(buscarDoClienteAutenticado(id)));
+    }
+
+    @Operation(summary = "Cancela um agendamento do cliente autenticado.")
+    @PostMapping("/{id}/cancelamento")
+    public ResponseEntity<Void> cancelar(@PathVariable UUID id) {
+        Agendamento agendamento = buscarDoClienteAutenticado(id);
+        cancelarAgendamentoService.cancelar(agendamento.getId());
+        return ResponseEntity.noContent().build();
     }
 
     // Os serviços buscam só pelo id; sem esta checagem um cliente poderia ler ou alterar a reserva de outro.
