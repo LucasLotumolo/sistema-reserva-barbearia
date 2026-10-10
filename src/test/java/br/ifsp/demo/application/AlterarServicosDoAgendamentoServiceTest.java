@@ -20,6 +20,10 @@ import br.ifsp.demo.exception.ServicoNaoEncontradoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,13 +34,22 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("US-03 — Serviço de aplicação para alterar serviços do agendamento")
 class AlterarServicosDoAgendamentoServiceTest {
+
+    @Mock
+    private AgendamentoRepository repository;
+
+    @Mock
+    private CatalogoDeServicos catalogo;
+
+    @InjectMocks
+    private AlterarServicosDoAgendamentoService service;
 
     private Agendamento agendamentoComUmServico(AgendamentoId id, BarbeiroId barbeiroId, LocalDateTime inicio) {
         ItemDeServico corte = new ItemDeServico(
@@ -72,15 +85,9 @@ class AlterarServicosDoAgendamentoServiceTest {
         ServicoId barbaId = new ServicoId(UUID.randomUUID());
         Servico barba = new Servico(barbaId, "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
 
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.of(agendamento));
         when(repository.porBarbeiroEData(barbeiroId, inicio.toLocalDate())).thenReturn(List.of());
-
-        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
         when(catalogo.porId(barbaId)).thenReturn(Optional.of(barba));
-
-        AlterarServicosDoAgendamentoService service =
-                new AlterarServicosDoAgendamentoService(repository, catalogo);
 
         service.adicionarServico(id, barbaId);
 
@@ -95,13 +102,7 @@ class AlterarServicosDoAgendamentoServiceTest {
     void adicionarServicoEmAgendamentoInexistenteDeveSerRejeitado() {
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
         ServicoId servicoId = new ServicoId(UUID.randomUUID());
-
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.empty());
-        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
-
-        AlterarServicosDoAgendamentoService service =
-                new AlterarServicosDoAgendamentoService(repository, catalogo);
 
         assertThatThrownBy(() -> service.adicionarServico(id, servicoId))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class);
@@ -120,13 +121,8 @@ class AlterarServicosDoAgendamentoServiceTest {
         Agendamento agendamento = agendamentoComUmServico(id, barbeiroId, inicio);
         ServicoId servicoInexistente = new ServicoId(UUID.randomUUID());
 
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.of(agendamento));
-        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
         when(catalogo.porId(servicoInexistente)).thenReturn(Optional.empty());
-
-        AlterarServicosDoAgendamentoService service =
-                new AlterarServicosDoAgendamentoService(repository, catalogo);
 
         assertThatThrownBy(() -> service.adicionarServico(id, servicoInexistente))
                 .isInstanceOf(ServicoNaoEncontradoException.class);
@@ -152,12 +148,7 @@ class AlterarServicosDoAgendamentoServiceTest {
                 new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(50)),
                 List.of(corte, barba), StatusAgendamento.AGENDADO, 0, null);
 
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.of(agendamento));
-        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
-
-        AlterarServicosDoAgendamentoService service =
-                new AlterarServicosDoAgendamentoService(repository, catalogo);
 
         service.removerServico(id, barba.getId());
 
@@ -172,13 +163,7 @@ class AlterarServicosDoAgendamentoServiceTest {
     void removerServicoDeAgendamentoInexistenteDeveSerRejeitado() {
         AgendamentoId id = new AgendamentoId(UUID.randomUUID());
         ItemId itemId = new ItemId(UUID.randomUUID());
-
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.empty());
-        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
-
-        AlterarServicosDoAgendamentoService service =
-                new AlterarServicosDoAgendamentoService(repository, catalogo);
 
         assertThatThrownBy(() -> service.removerServico(id, itemId))
                 .isInstanceOf(AgendamentoNaoEncontradoException.class);
@@ -196,12 +181,7 @@ class AlterarServicosDoAgendamentoServiceTest {
         LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
         Agendamento agendamento = agendamentoComUmServico(id, barbeiroId, inicio);
 
-        AgendamentoRepository repository = mock(AgendamentoRepository.class);
         when(repository.porId(id)).thenReturn(Optional.of(agendamento));
-        CatalogoDeServicos catalogo = mock(CatalogoDeServicos.class);
-
-        AlterarServicosDoAgendamentoService service =
-                new AlterarServicosDoAgendamentoService(repository, catalogo);
 
         ItemId idDoUnicoItem = agendamento.getItens().get(0).getId();
 
