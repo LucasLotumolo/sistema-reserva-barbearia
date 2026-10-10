@@ -1,6 +1,7 @@
 package br.ifsp.demo.controller;
 
 import br.ifsp.demo.application.AgendarAtendimentoService;
+import br.ifsp.demo.application.AlterarServicosDoAgendamentoService;
 import br.ifsp.demo.application.AvaliarAtendimentoService;
 import br.ifsp.demo.application.ConfirmarPresencaService;
 import br.ifsp.demo.application.ConsultarAgendamentosService;
@@ -8,6 +9,7 @@ import br.ifsp.demo.application.ReagendarAtendimentoService;
 import br.ifsp.demo.domain.agendamento.Agendamento;
 import br.ifsp.demo.domain.agendamento.AgendamentoId;
 import br.ifsp.demo.domain.agendamento.Contato;
+import br.ifsp.demo.domain.agendamento.ItemId;
 import br.ifsp.demo.domain.comum.BarbeiroId;
 import br.ifsp.demo.domain.comum.ClienteId;
 import br.ifsp.demo.domain.servico.ServicoId;
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,19 +42,22 @@ public class AgendamentoController {
     private final ReagendarAtendimentoService reagendarAtendimentoService;
     private final ConfirmarPresencaService confirmarPresencaService;
     private final AvaliarAtendimentoService avaliarAtendimentoService;
+    private final AlterarServicosDoAgendamentoService alterarServicosDoAgendamentoService;
 
     public AgendamentoController(AuthenticationInfoService authService,
                                  AgendarAtendimentoService agendarAtendimentoService,
                                  ConsultarAgendamentosService consultarAgendamentosService,
                                  ReagendarAtendimentoService reagendarAtendimentoService,
                                  ConfirmarPresencaService confirmarPresencaService,
-                                 AvaliarAtendimentoService avaliarAtendimentoService) {
+                                 AvaliarAtendimentoService avaliarAtendimentoService,
+                                 AlterarServicosDoAgendamentoService alterarServicosDoAgendamentoService) {
         this.authService = authService;
         this.agendarAtendimentoService = agendarAtendimentoService;
         this.consultarAgendamentosService = consultarAgendamentosService;
         this.reagendarAtendimentoService = reagendarAtendimentoService;
         this.confirmarPresencaService = confirmarPresencaService;
         this.avaliarAtendimentoService = avaliarAtendimentoService;
+        this.alterarServicosDoAgendamentoService = alterarServicosDoAgendamentoService;
     }
 
     @Operation(summary = "Agenda um atendimento para o cliente autenticado.")
@@ -107,6 +113,23 @@ public class AgendamentoController {
         Agendamento agendamento = buscarDoClienteAutenticado(id);
         avaliarAtendimentoService.avaliar(agendamento.getId(), request.nota());
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Operation(summary = "Inclui um serviço do catálogo no agendamento do cliente autenticado.")
+    @PostMapping("/{id}/itens")
+    public ResponseEntity<AgendamentoResponse> adicionarServico(@PathVariable UUID id,
+                                                                @RequestBody AdicionarServicoRequest request) {
+        Agendamento agendamento = buscarDoClienteAutenticado(id);
+        alterarServicosDoAgendamentoService.adicionarServico(agendamento.getId(), new ServicoId(request.servicoId()));
+        return ResponseEntity.ok(AgendamentoResponse.de(buscarDoClienteAutenticado(id)));
+    }
+
+    @Operation(summary = "Remove um serviço do agendamento do cliente autenticado.")
+    @DeleteMapping("/{id}/itens/{itemId}")
+    public ResponseEntity<AgendamentoResponse> removerServico(@PathVariable UUID id, @PathVariable UUID itemId) {
+        Agendamento agendamento = buscarDoClienteAutenticado(id);
+        alterarServicosDoAgendamentoService.removerServico(agendamento.getId(), new ItemId(itemId));
+        return ResponseEntity.ok(AgendamentoResponse.de(buscarDoClienteAutenticado(id)));
     }
 
     // Os serviços buscam só pelo id; sem esta checagem um cliente poderia ler ou alterar a reserva de outro.
