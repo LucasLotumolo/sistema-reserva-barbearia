@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -718,6 +719,39 @@ class AlterarServicosDoAgendamentoTest {
 
         assertThat(item.getServicoId()).isEqualTo(servicoId);
         assertThat(item.getNomeDoServico()).isEqualTo("Corte");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("Horários disponíveis consideram agendamentos fora de ordem cronológica")
+    void horariosDisponiveisOrdenamAgendamentosForaDeOrdem() {
+        LocalDate data = LocalDate.of(2026, 9, 22);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime agora = data.atTime(8, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        Agendamento agendamentoDas15 = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Cliente A", "11900000000"), new Periodo(data.atTime(15, 0), data.atTime(16, 0)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        Agendamento agendamentoDas10 = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Cliente B", "11900000001"), new Periodo(data.atTime(10, 0), data.atTime(11, 0)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, data,
+                List.of(agendamentoDas15, agendamentoDas10));
+
+        List<Periodo> livres = agenda.horariosDisponiveis(30, agora);
+
+        assertThat(livres).hasSize(3);
+        assertThat(livres.get(0)).isEqualTo(new Periodo(data.atTime(9, 0), data.atTime(10, 0)));
+        assertThat(livres.get(1)).isEqualTo(new Periodo(data.atTime(11, 0), data.atTime(15, 0)));
+        assertThat(livres.get(2)).isEqualTo(new Periodo(data.atTime(16, 0), data.atTime(19, 0)));
     }
 
 
