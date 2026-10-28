@@ -162,8 +162,12 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <targetClasses></targetClasses>
-                    <targetTests></targetTests>
+                    <targetClasses>
+                        <param>br.ifsp.demo.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>br.ifsp.demo.*</param>
+                    </targetTests>
                 </configuration>
             </plugin>
             <plugin>
