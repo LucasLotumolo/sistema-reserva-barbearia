@@ -685,4 +685,40 @@ class AlterarServicosDoAgendamentoTest {
 
         assertThat(meuAgendamento.getItens()).hasSize(2);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("getClienteId e getContato retornam os valores do agendamento")
+    void getClienteIdEGetContatoRetornamOsValoresCorretos() {
+        ClienteId clienteId = new ClienteId(UUID.randomUUID());
+        Contato contato = new Contato("Maria Silva", "11987654321");
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), clienteId, new BarbeiroId(UUID.randomUUID()),
+                contato, new Periodo(inicio, inicio.plusMinutes(30)), List.of(corte),
+                StatusAgendamento.AGENDADO, 0, null);
+
+        assertThat(agendamento.getClienteId()).isEqualTo(clienteId);
+        assertThat(agendamento.getContato()).isEqualTo(contato);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("getServicoId e getNomeDoServico retornam os valores do item")
+    void getServicoIdEGetNomeDoServicoRetornamOsValoresCorretos() {
+        ServicoId servicoId = new ServicoId(UUID.randomUUID());
+        ItemDeServico item = new ItemDeServico(new ItemId(UUID.randomUUID()), servicoId,
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        assertThat(item.getServicoId()).isEqualTo(servicoId);
+        assertThat(item.getNomeDoServico()).isEqualTo("Corte");
+    }
+
+
 }
