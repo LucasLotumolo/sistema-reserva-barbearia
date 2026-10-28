@@ -654,4 +654,35 @@ class AlterarServicosDoAgendamentoTest {
         assertThatThrownBy(() -> agendamento.removerItem(barba.getId()))
                 .isInstanceOf(RegraDeNegocioException.class);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Structural")
+    @DisplayName("Agendamento expirado do barbeiro não bloqueia disponibilidade")
+    void agendamentoExpiradoDoBarbeiroNaoBloqueiaDisponibilidade() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        Agendamento meuAgendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        Agendamento agendamentoExpirado = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("João Souza", "11912345678"), new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.EXPIRADO, 0, null);
+
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(),
+                List.of(meuAgendamento, agendamentoExpirado));
+
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+
+        meuAgendamento.adicionarItem(barba, agenda);
+
+        assertThat(meuAgendamento.getItens()).hasSize(2);
+    }
 }
