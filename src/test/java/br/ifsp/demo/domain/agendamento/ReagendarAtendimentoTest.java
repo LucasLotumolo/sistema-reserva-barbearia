@@ -449,4 +449,39 @@ class ReagendarAtendimentoTest {
         assertThat(agendamento.getPeriodo()).isEqualTo(periodoOriginal);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Structural")
+    @DisplayName("[OK] Reagendamento de agendamento confirmado deve ser permitido")
+    void reagendamentoDeAgendamentoConfirmadoDeveSerPermitido() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+        LocalDateTime agora = LocalDateTime.of(2026, 10, 8, 10, 0);
+        LocalDateTime inicioOriginal = agora.plusHours(5);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()),
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                new Contato("Cauã", "16999999999"),
+                new Periodo(inicioOriginal, inicioOriginal.plusMinutes(30)),
+                List.of(corte),
+                StatusAgendamento.CONFIRMADO,
+                0,
+                null
+        );
+
+        LocalDateTime novoInicio = agora.plusDays(1).withHour(11).withMinute(0);
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(agendamento.getBarbeiroId(), novoInicio.toLocalDate(), List.of());
+
+        agendamento.reagendarPara(novoInicio, agenda, agora);
+
+        assertThat(agendamento.getPeriodo().inicio()).isEqualTo(novoInicio);
+        assertThat(agendamento.getStatus()).isEqualTo(StatusAgendamento.CONFIRMADO);
+    }
 }
