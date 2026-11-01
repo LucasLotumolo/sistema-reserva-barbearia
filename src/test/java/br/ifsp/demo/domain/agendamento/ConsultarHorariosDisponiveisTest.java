@@ -261,6 +261,17 @@ class ConsultarHorariosDisponiveisTest {
         assertThat(disponiveis).containsExactly(periodoDas(15, 0, 19, 0));
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("Períodos com início ou fim diferentes não são iguais")
+    void periodosComInicioOuFimDiferentesNaoDevemSerIguais() {
+        Periodo original = periodoDas(10, 0, 11, 0);
+
+        assertThat(original).isNotEqualTo(periodoDas(10, 30, 11, 0));
+        assertThat(original).isNotEqualTo(periodoDas(10, 0, 11, 30));
+    }
+
     private AgendaDoBarbeiro agendaCom(Agendamento... agendamentos) {
         return new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(agendamentos));
     }
