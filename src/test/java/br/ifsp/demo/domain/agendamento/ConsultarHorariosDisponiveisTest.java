@@ -248,6 +248,19 @@ class ConsultarHorariosDisponiveisTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Structural")
+    @DisplayName("Agendamento ativo já encerrado antes do instante atual não altera o início do intervalo livre")
+    void agendamentoAtivoEncerradoAntesDeAgoraNaoDeveAlterarOInicioDoIntervaloLivre() {
+        Agendamento jaEncerrado = agendamentoDas(10, 0, 11, 0, StatusAgendamento.CONFIRMADO);
+
+        List<Periodo> disponiveis = agendaCom(jaEncerrado)
+                .horariosDisponiveis(DURACAO_DO_CORTE_EM_MINUTOS, DATA.atTime(15, 0));
+
+        assertThat(disponiveis).containsExactly(periodoDas(15, 0, 19, 0));
+    }
+
     private AgendaDoBarbeiro agendaCom(Agendamento... agendamentos) {
         return new AgendaDoBarbeiro(BARBEIRO, DATA, List.of(agendamentos));
     }
