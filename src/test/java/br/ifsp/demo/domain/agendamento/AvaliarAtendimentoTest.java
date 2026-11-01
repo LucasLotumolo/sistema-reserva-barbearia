@@ -242,6 +242,29 @@ class AvaliarAtendimentoTest {
         assertThat(agendamento.getAvaliacao()).isNull();
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("Avaliação registrada expõe o instante em que foi feita")
+    void avaliacaoRegistradaDeveExporOInstanteDoRegistro() {
+        Agendamento agendamento = agendamentoCom(StatusAgendamento.CONFIRMADO);
+
+        agendamento.avaliar(4, APOS_O_TERMINO);
+
+        assertThat(agendamento.getAvaliacao().registradaEm()).isEqualTo(APOS_O_TERMINO);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("Avaliações com nota ou instante diferentes não são iguais")
+    void avaliacoesComNotaOuInstanteDiferentesNaoDevemSerIguais() {
+        Avaliacao original = new Avaliacao(4, APOS_O_TERMINO);
+
+        assertThat(original).isNotEqualTo(new Avaliacao(3, APOS_O_TERMINO));
+        assertThat(original).isNotEqualTo(new Avaliacao(4, APOS_O_TERMINO.plusMinutes(1)));
+    }
+
     private Agendamento agendamentoCom(StatusAgendamento status) {
         ItemDeServico corte = new ItemDeServico(
                 new ItemId(UUID.randomUUID()),
