@@ -61,7 +61,7 @@ export function NovoHorario() {
         <legend>O que você vai fazer</legend>
         <div className="opcoes">
           {SERVICOS.map((servico) => (
-            <label key={servico.id} className="opcao">
+            <label key={servico.id} className="opcao" data-testid={`servico-${servico.nome}`}>
               <input
                 type="checkbox"
                 checked={servicosEscolhidos.includes(servico.id)}
@@ -80,7 +80,7 @@ export function NovoHorario() {
         <legend>Com quem</legend>
         <div className="opcoes">
           {BARBEIROS.map((barbeiro) => (
-            <label key={barbeiro.id} className="opcao">
+            <label key={barbeiro.id} className="opcao" data-testid={`barbeiro-${barbeiro.nome}`}>
               <input
                 type="radio"
                 name="barbeiro"
@@ -143,7 +143,7 @@ export function NovoHorario() {
           )}
         </p>
         {erro && <p className="erro" role="alert">{erro}</p>}
-        <button type="submit" className="botao" disabled={enviando || !inicio || excedeLimites}>
+        <button type="submit" className="botao" data-testid="enviar-agendamento" disabled={enviando || !inicio || excedeLimites}>
           {enviando ? 'Marcando…' : 'Marcar horário'}
         </button>
       </div>

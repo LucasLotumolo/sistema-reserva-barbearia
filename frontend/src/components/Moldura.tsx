@@ -11,7 +11,7 @@ export function Moldura({ children }: { children: ReactNode }) {
         <Link to="/" className="topo__marca">Três Cadeiras</Link>
         <nav className="topo__nav" aria-label="Principal">
           <NavLink to="/" end>Minha agenda</NavLink>
-          <NavLink to="/novo">Marcar horário</NavLink>
+          <NavLink to="/novo" data-testid="nav-marcar-horario">Marcar horário</NavLink>
           <button type="button" className="botao-texto" onClick={encerrar}>Sair</button>
         </nav>
       </header>

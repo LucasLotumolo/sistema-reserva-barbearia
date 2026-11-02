@@ -46,10 +46,10 @@ export function Entrada() {
 
       <section className="entrada__acesso" aria-label={modo === 'entrar' ? 'Entrar' : 'Criar conta'}>
         <div className="alternador" role="group" aria-label="Tenho conta ou sou novo">
-          <button type="button" aria-pressed={modo === 'entrar'} onClick={() => { setModo('entrar'); setErro(null); }}>
+          <button type="button" data-testid="aba-entrar" aria-pressed={modo === 'entrar'} onClick={() => { setModo('entrar'); setErro(null); }}>
             Entrar
           </button>
-          <button type="button" aria-pressed={modo === 'criar'} onClick={() => { setModo('criar'); setErro(null); }}>
+          <button type="button" data-testid="aba-criar-conta" aria-pressed={modo === 'criar'} onClick={() => { setModo('criar'); setErro(null); }}>
             Criar conta
           </button>
         </div>
@@ -84,7 +84,7 @@ export function Entrada() {
             />
           </label>
           {erro && <p className="erro" role="alert">{erro}</p>}
-          <button type="submit" className="botao" disabled={enviando}>
+          <button type="submit" className="botao" data-testid="enviar-acesso" disabled={enviando}>
             {enviando ? 'Aguarde…' : modo === 'entrar' ? 'Entrar' : 'Criar conta'}
           </button>
         </form>

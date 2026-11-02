@@ -12,23 +12,28 @@ export const ANTECEDENCIA_PARA_AGENDAR = 60;
 
 export const estaAtivo = (a: Agendamento) => a.status === 'AGENDADO' || a.status === 'CONFIRMADO';
 
-export const jaTerminou = (a: Agendamento) => minutosAte(a.fim) <= 0;
+export const jaTerminou = (a: Agendamento, agora = new Date()) => minutosAte(a.fim, agora) <= 0;
 
-export const podeCancelar = (a: Agendamento) => estaAtivo(a) && minutosAte(a.inicio) > 0;
+export const podeCancelar = (a: Agendamento, agora = new Date()) => estaAtivo(a) && minutosAte(a.inicio, agora) > 0;
 
 export const reagendamentosRestantes = (a: Agendamento) =>
   Math.max(MAXIMO_DE_REAGENDAMENTOS - a.quantidadeDeReagendamentos, 0);
 
-export const podeReagendar = (a: Agendamento) =>
-  estaAtivo(a) && reagendamentosRestantes(a) > 0 && minutosAte(a.inicio) >= ANTECEDENCIA_PARA_REAGENDAR;
+export const podeReagendar = (a: Agendamento, agora = new Date()) =>
+  estaAtivo(a) && reagendamentosRestantes(a) > 0 && minutosAte(a.inicio, agora) >= ANTECEDENCIA_PARA_REAGENDAR;
 
-export const podeAlterarServicos = (a: Agendamento) => estaAtivo(a) && minutosAte(a.inicio) > 0;
+export const podeAlterarServicos = (a: Agendamento, agora = new Date()) =>
+  estaAtivo(a) && minutosAte(a.inicio, agora) > 0;
 
-export const podeAvaliar = (a: Agendamento) => a.status === 'CONFIRMADO' && jaTerminou(a) && a.avaliacao === null;
+export const podeAvaliar = (a: Agendamento, agora = new Date()) =>
+  a.status === 'CONFIRMADO' && jaTerminou(a, agora) && a.avaliacao === null;
 
-export function situacaoDaConfirmacao(a: Agendamento): 'indisponivel' | 'aguardando' | 'aberta' | 'encerrada' {
+export function situacaoDaConfirmacao(
+  a: Agendamento,
+  agora = new Date(),
+): 'indisponivel' | 'aguardando' | 'aberta' | 'encerrada' {
   if (a.status !== 'AGENDADO') return 'indisponivel';
-  const minutos = minutosAte(a.inicio);
+  const minutos = minutosAte(a.inicio, agora);
   if (minutos > JANELA_DE_CONFIRMACAO_ABRE) return 'aguardando';
   if (minutos < JANELA_DE_CONFIRMACAO_FECHA) return 'encerrada';
   return 'aberta';
@@ -38,9 +43,9 @@ export function aberturaDaConfirmacao(a: Agendamento) {
   return new Date(new Date(a.inicio).getTime() - JANELA_DE_CONFIRMACAO_ABRE * 60_000);
 }
 
-export function descreverStatus(a: Agendamento) {
+export function descreverStatus(a: Agendamento, agora = new Date()) {
   if (a.status === 'CANCELADO') return 'Cancelado';
   if (a.status === 'EXPIRADO') return 'Expirado por falta de confirmação';
   if (a.status === 'AGENDADO') return 'Falta confirmar presença';
-  return jaTerminou(a) ? 'Atendido' : 'Presença confirmada';
+  return jaTerminou(a, agora) ? 'Atendido' : 'Presença confirmada';
 }

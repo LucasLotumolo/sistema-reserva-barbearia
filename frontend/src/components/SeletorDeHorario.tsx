@@ -75,7 +75,7 @@ export function SeletorDeHorario({
     <div className="seletor">
       <div className="dias" role="radiogroup" aria-label="Dia do atendimento">
         {dias.map((dia) => (
-          <label key={dia.data} className="dia">
+          <label key={dia.data} className="dia" data-testid={`dia-${dia.data}`}>
             <input
               type="radio"
               name="dia"
@@ -114,6 +114,7 @@ export function SeletorDeHorario({
                         key={valor}
                         type="button"
                         className="ficha"
+                        data-testid={`horario-${formatarHora(inicio)}`}
                         aria-pressed={valor === selecionado}
                         onClick={() => aoSelecionar(valor)}
                       >

@@ -154,6 +154,7 @@ export function DetalheDoHorario() {
                 <button
                   type="button"
                   className="botao-texto"
+                  data-testid={`remover-${item.nomeDoServico}`}
                   disabled={ocupado}
                   onClick={() => executar(() => removerServico(agendamento.id, item.id), `${item.nomeDoServico} removido.`)}
                 >
@@ -177,6 +178,7 @@ export function DetalheDoHorario() {
                 key={servico.id}
                 type="button"
                 className="ficha"
+                data-testid={`incluir-${servico.nome}`}
                 disabled={ocupado}
                 onClick={() => executar(() => adicionarServico(agendamento.id, servico.id), `${servico.nome} incluído.`)}
               >
