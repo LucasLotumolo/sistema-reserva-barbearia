@@ -73,4 +73,52 @@ public class ApiExceptionHandler {
                 .build();
         return new ResponseEntity<>(apiException, conflict);
     }
+
+    @ExceptionHandler(value = RegraDeNegocioException.class)
+    public ResponseEntity<?> handleRegraDeNegocioException(RegraDeNegocioException e){
+        final HttpStatus unprocessableEntity = UNPROCESSABLE_ENTITY;
+        final ApiException apiException = ApiException.builder()
+                .status(unprocessableEntity)
+                .message(e.getMessage())
+                .developerMessage(e.getClass().getName())
+                .timestamp(ZonedDateTime.now(ZoneId.of("Z")))
+                .build();
+        return new ResponseEntity<>(apiException, unprocessableEntity);
+    }
+
+    @ExceptionHandler(value = HorarioIndisponivelException.class)
+    public ResponseEntity<?> handleHorarioIndisponivelException(HorarioIndisponivelException e){
+        final HttpStatus conflict = CONFLICT;
+        final ApiException apiException = ApiException.builder()
+                .status(conflict)
+                .message(e.getMessage())
+                .developerMessage(e.getClass().getName())
+                .timestamp(ZonedDateTime.now(ZoneId.of("Z")))
+                .build();
+        return new ResponseEntity<>(apiException, conflict);
+    }
+
+    @ExceptionHandler(value = AgendamentoNaoEncontradoException.class)
+    public ResponseEntity<?> handleAgendamentoNaoEncontradoException(AgendamentoNaoEncontradoException e){
+        final HttpStatus notFound = NOT_FOUND;
+        final ApiException apiException = ApiException.builder()
+                .status(notFound)
+                .message(e.getMessage())
+                .developerMessage(e.getClass().getName())
+                .timestamp(ZonedDateTime.now(ZoneId.of("Z")))
+                .build();
+        return new ResponseEntity<>(apiException, notFound);
+    }
+
+    @ExceptionHandler(value = ServicoNaoEncontradoException.class)
+    public ResponseEntity<?> handleServicoNaoEncontradoException(ServicoNaoEncontradoException e){
+        final HttpStatus notFound = NOT_FOUND;
+        final ApiException apiException = ApiException.builder()
+                .status(notFound)
+                .message(e.getMessage())
+                .developerMessage(e.getClass().getName())
+                .timestamp(ZonedDateTime.now(ZoneId.of("Z")))
+                .build();
+        return new ResponseEntity<>(apiException, notFound);
+    }
 }

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -654,4 +655,104 @@ class AlterarServicosDoAgendamentoTest {
         assertThatThrownBy(() -> agendamento.removerItem(barba.getId()))
                 .isInstanceOf(RegraDeNegocioException.class);
     }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Structural")
+    @DisplayName("Agendamento expirado do barbeiro não bloqueia disponibilidade")
+    void agendamentoExpiradoDoBarbeiroNaoBloqueiaDisponibilidade() {
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+        Agendamento meuAgendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Maria Silva", "11987654321"), new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        Agendamento agendamentoExpirado = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("João Souza", "11912345678"), new Periodo(inicio, inicio.plusMinutes(30)),
+                List.of(corte), StatusAgendamento.EXPIRADO, 0, null);
+
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, inicio.toLocalDate(),
+                List.of(meuAgendamento, agendamentoExpirado));
+
+        ItemDeServico barba = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Barba", new Dinheiro(new BigDecimal("25.00")), 20);
+
+        meuAgendamento.adicionarItem(barba, agenda);
+
+        assertThat(meuAgendamento.getItens()).hasSize(2);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("getClienteId e getContato retornam os valores do agendamento")
+    void getClienteIdEGetContatoRetornamOsValoresCorretos() {
+        ClienteId clienteId = new ClienteId(UUID.randomUUID());
+        Contato contato = new Contato("Maria Silva", "11987654321");
+        LocalDateTime inicio = LocalDateTime.of(2026, 9, 22, 10, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        Agendamento agendamento = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), clienteId, new BarbeiroId(UUID.randomUUID()),
+                contato, new Periodo(inicio, inicio.plusMinutes(30)), List.of(corte),
+                StatusAgendamento.AGENDADO, 0, null);
+
+        assertThat(agendamento.getClienteId()).isEqualTo(clienteId);
+        assertThat(agendamento.getContato()).isEqualTo(contato);
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("getServicoId e getNomeDoServico retornam os valores do item")
+    void getServicoIdEGetNomeDoServicoRetornamOsValoresCorretos() {
+        ServicoId servicoId = new ServicoId(UUID.randomUUID());
+        ItemDeServico item = new ItemDeServico(new ItemId(UUID.randomUUID()), servicoId,
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        assertThat(item.getServicoId()).isEqualTo(servicoId);
+        assertThat(item.getNomeDoServico()).isEqualTo("Corte");
+    }
+
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("Horários disponíveis consideram agendamentos fora de ordem cronológica")
+    void horariosDisponiveisOrdenamAgendamentosForaDeOrdem() {
+        LocalDate data = LocalDate.of(2026, 9, 22);
+        BarbeiroId barbeiroId = new BarbeiroId(UUID.randomUUID());
+        LocalDateTime agora = data.atTime(8, 0);
+
+        ItemDeServico corte = new ItemDeServico(new ItemId(UUID.randomUUID()), new ServicoId(UUID.randomUUID()),
+                "Corte", new Dinheiro(new BigDecimal("40.00")), 30);
+
+        Agendamento agendamentoDas15 = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Cliente A", "11900000000"), new Periodo(data.atTime(15, 0), data.atTime(16, 0)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        Agendamento agendamentoDas10 = Agendamento.reconstituir(
+                new AgendamentoId(UUID.randomUUID()), new ClienteId(UUID.randomUUID()), barbeiroId,
+                new Contato("Cliente B", "11900000001"), new Periodo(data.atTime(10, 0), data.atTime(11, 0)),
+                List.of(corte), StatusAgendamento.AGENDADO, 0, null);
+
+        AgendaDoBarbeiro agenda = new AgendaDoBarbeiro(barbeiroId, data,
+                List.of(agendamentoDas15, agendamentoDas10));
+
+        List<Periodo> livres = agenda.horariosDisponiveis(30, agora);
+
+        assertThat(livres).hasSize(3);
+        assertThat(livres.get(0)).isEqualTo(new Periodo(data.atTime(9, 0), data.atTime(10, 0)));
+        assertThat(livres.get(1)).isEqualTo(new Periodo(data.atTime(11, 0), data.atTime(15, 0)));
+        assertThat(livres.get(2)).isEqualTo(new Periodo(data.atTime(16, 0), data.atTime(19, 0)));
+    }
+
+
 }
