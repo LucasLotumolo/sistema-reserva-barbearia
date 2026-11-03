@@ -164,6 +164,33 @@ class ConsultarAgendamentosTest {
         assertThat(resultado).containsExactly(agendado, confirmado);
     }
 
+    @Test
+    @Tag("UnitTest")
+    @Tag("Mutation")
+    @DisplayName("[OK] Consulta de agendamento existente retorna o agendamento")
+    void consultaDeAgendamentoExistenteDeveRetornarOAgendamento() {
+        ItemDeServico corte = new ItemDeServico(
+                new ItemId(UUID.randomUUID()),
+                new ServicoId(UUID.randomUUID()),
+                "Corte",
+                new Dinheiro(new BigDecimal("40.00")),
+                30
+        );
+        Agendamento existente = agendamentoComInicio(
+                new ClienteId(UUID.randomUUID()),
+                new BarbeiroId(UUID.randomUUID()),
+                corte,
+                LocalDateTime.of(2026, 10, 2, 14, 0));
+
+        AgendamentoRepository repository = mock(AgendamentoRepository.class);
+        when(repository.porId(existente.getId())).thenReturn(Optional.of(existente));
+        ConsultarAgendamentosService service = new ConsultarAgendamentosService(repository);
+
+        Agendamento resultado = service.buscarPorId(existente.getId());
+
+        assertThat(resultado).isSameAs(existente);
+    }
+
     private Agendamento agendamentoComInicio(ClienteId clienteId, BarbeiroId barbeiroId,
                                              ItemDeServico item, LocalDateTime inicio) {
         return Agendamento.reconstituir(
